@@ -1,0 +1,82 @@
+[
+  {
+    "question": "What is the primary purpose of the `@property` decorator in Python?",
+    "correct_answer": "It allows a class method to be accessed as if it were a regular attribute.",
+    "explanation": "This enables encapsulation by letting developers define 'getters' for attributes while maintaining clean, attribute-style access syntax (e.g., `obj.name` instead of `obj.get_name()`).",
+    "topic": "property_decorators",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "What happens if you try to assign a new value to an attribute decorated only with `@property` (e.g., `obj.my_prop = 10`)?",
+    "correct_answer": "It raises an `AttributeError: can't set attribute`.",
+    "explanation": "A method decorated with just `@property` creates a read-only property. To allow assignment, you must explicitly define a setter method for that property.",
+    "topic": "property_decorators",
+    "difficulty": "medium",
+    "is_gotcha": true
+  },
+  {
+    "question": "What is the correct syntax to define a setter for a property named `temperature`?",
+    "correct_answer": "`@temperature.setter` placed above a method also named `def temperature(self, value):`.",
+    "explanation": "The setter decorator is created automatically when you define a `@property`. Its name must exactly match the property's name, followed by `.setter`.",
+    "topic": "property_decorators",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "In the context of refactoring, what is the main advantage of using `@property` over traditional setter/getter methods like `set_price(val)`?",
+    "correct_answer": "It provides backward compatibility for APIs without changing the interface.",
+    "explanation": "If an attribute `item.price` was originally a plain variable and later needs validation logic, you can change it to a `@property` without breaking existing code that accesses it directly as `item.price`.",
+    "topic": "property_decorators",
+    "difficulty": "medium",
+    "is_gotcha": false
+  },
+  {
+    "question": "What severe bug occurs if a property getter/setter accesses the property itself instead of an internal private variable (e.g., `self.name = value` inside `def name(self, value):`)?",
+    "correct_answer": "It causes an infinite recursion, eventually raising a `RecursionError`.",
+    "explanation": "Assigning to `self.name` inside the setter for `name` calls the setter again, creating an infinite loop. You must use a protected/private backing variable, conventionally named with a leading underscore (e.g., `self._name`).",
+    "topic": "property_decorators",
+    "difficulty": "hard",
+    "is_gotcha": true
+  },
+  {
+    "question": "Can you define a `@<name>.setter` before defining the `@property` for it?",
+    "correct_answer": "No, doing so will raise a `NameError`.",
+    "explanation": "The `@property` decorator creates the property object which then provides the `.setter` and `.deleter` decorators. You cannot use a property's setter before the property itself exists.",
+    "topic": "property_decorators",
+    "difficulty": "medium",
+    "is_gotcha": true
+  },
+  {
+    "question": "How do you define a method that executes when a user calls `del obj.password`?",
+    "correct_answer": "By decorating a method named `password` with `@password.deleter`.",
+    "explanation": "The `.deleter` decorator allows you to define custom cleanup or state-reset logic that triggers when the `del` keyword is used on the property.",
+    "topic": "property_decorators",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "What happens if a user calls `del obj.score` on a property that has a getter and setter, but no `@score.deleter` defined?",
+    "correct_answer": "It raises an `AttributeError: can't delete attribute`.",
+    "explanation": "Just like setters, deleters are opt-in. If you don't explicitly define a deleter method, the property cannot be deleted via the `del` keyword.",
+    "topic": "property_decorators",
+    "difficulty": "medium",
+    "is_gotcha": true
+  },
+  {
+    "question": "How does Python's approach to encapsulation using properties differ conceptually from strict OOP languages like Java?",
+    "correct_answer": "Python uses a 'we are all consenting adults here' philosophy, combining naming conventions (like `_var`) with properties for convenience, rather than strict compiler-enforced access modifiers (private/protected).",
+    "explanation": "In Java, you strictly hide variables and enforce `getVar()` / `setVar()`. In Python, you expose variables openly by default, only switching to `@property` backed by a `_variable` when encapsulation (like validation or computed values) becomes strictly necessary.",
+    "topic": "property_decorators",
+    "difficulty": "hard",
+    "is_gotcha": false
+  },
+  {
+    "question": "Is it possible for a `@property` method to take additional arguments besides `self` (e.g., `def full_name(self, format):`)?",
+    "correct_answer": "No, property getters can only take `self`.",
+    "explanation": "Because a property is accessed like an attribute (`obj.full_name`), there is no syntax to pass arguments to it. If you need to pass arguments, you must use a standard method instead of a property.",
+    "topic": "property_decorators",
+    "difficulty": "medium",
+    "is_gotcha": true
+  }
+]

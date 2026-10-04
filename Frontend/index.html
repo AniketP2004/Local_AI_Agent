@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroPy - Cyberpunk Python Prep</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-base: #030712;
+            --panel-bg: rgba(17, 24, 39, 0.8);
+            --neon-cyan: #00f0ff;
+            --neon-green: #39ff14;
+            --neon-red: #ff003c;
+            --neon-yellow: #fde047;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --cyan-glow: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3);
+            --red-glow: 0 0 10px rgba(255, 0, 60, 0.5);
+            --green-glow: 0 0 10px rgba(57, 255, 20, 0.5);
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .font-mono { font-family: 'Fira Code', monospace; }
+
+        .cyber-panel {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 4px 6px rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            position: relative;
+        }
+
+        .cyber-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+        }
+
+        .cyber-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            color: var(--neon-cyan);
+            transition: all 0.2s ease;
+        }
+        
+        .cyber-input:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        }
+
+        .cyber-button {
+            background: rgba(0, 240, 255, 0.05);
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cyber-button:hover:not(:disabled) {
+            background: rgba(0, 240, 255, 0.15);
+            box-shadow: var(--cyan-glow);
+            text-shadow: 0 0 5px var(--neon-cyan);
+        }
+
+        .cyber-button:disabled {
+            border-color: #374151;
+            color: #6b7280;
+            cursor: not-allowed;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .gotcha-badge {
+            background: linear-gradient(45deg, #ff003c, #b3002a);
+            box-shadow: var(--red-glow);
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(1); box-shadow: var(--red-glow); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 0, 60, 0.8); }
+            100% { transform: scale(1); box-shadow: var(--red-glow); }
+        }
+
+        /* Verdict colors */
+        .verdict-correct { color: var(--neon-green); border-bottom-color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
+        .verdict-partial { color: var(--neon-yellow); border-bottom-color: var(--neon-yellow); text-shadow: 0 0 8px var(--neon-yellow); }
+        .verdict-wrong { color: var(--neon-red); border-bottom-color: var(--neon-red); text-shadow: 0 0 8px var(--neon-red); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col items-center">
+
+    <header class="w-full max-w-4xl flex justify-between items-center mb-8">
+        <div class="flex items-center gap-2">
+            <h1 class="text-3xl font-mono font-bold tracking-tighter text-white">
+                NEURO<span style="color: var(--neon-cyan); text-shadow: var(--cyan-glow);">PY</span>
+            </h1>
+            <span class="text-xs font-mono opacity-50 px-2 border border-gray-600 rounded">v2.0</span>
+        </div>
+        <div class="text-sm font-mono text-[var(--text-muted)] flex items-center gap-2">
+            SYS_STATUS: 
+            <span id="sys-status" class="text-[var(--neon-green)] flex items-center gap-1">
+                <div class="w-2 h-2 rounded-full bg-[var(--neon-green)] animate-pulse shadow-[var(--green-glow)]"></div>
+                ONLINE
+            </span>
+        </div>
+    </header>
+
+    <!-- Global Error Toast -->
+    <div id="error-toast" class="hidden w-full max-w-4xl mb-6 p-4 border border-[var(--neon-red)] bg-red-950/50 text-[var(--neon-red)] rounded flex justify-between items-center cyber-panel shadow-[var(--red-glow)] z-50">
+        <div class="flex items-center gap-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span id="error-message" class="font-mono text-sm uppercase"></span>
+        </div>
+        <button onclick="ui.hideError()" class="hover:text-white transition-colors p-1">&times;</button>
+    </div>
+
+    <main class="w-full max-w-4xl relative">
+        <section id="screen-setup" class="cyber-panel p-6 md:p-10 rounded-lg">
+            <h2 class="text-xl font-mono mb-8 border-b border-[rgba(0,240,255,0.2)] pb-3 text-[var(--neon-cyan)]">> INITIALIZE_TRAINING_MODULE</h2>
+            
+            <form id="setup-form" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-mono text-[var(--text-muted)] mb-2">MODE</label>
+                    <select id="mode-select" class="w-full cyber-input p-3 rounded font-mono text-sm appearance-none">
+                        <option value="practice">Standard Practice</option>
+                        <option value="teach">Teaching Mode</option>
+                        <option value="interview">Interview Mode</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-mono text-[var(--text-muted)] mb-2">TARGET_TOPIC</label>
+                    <div class="relative">
+                        <select id="topic-select" class="w-full cyber-input p-3 rounded font-mono text-sm appearance-none">
+                            <option value="">Random / Any topic</option>
+                            <!-- Options populated via JS -->
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[var(--neon-cyan)]">
+                            ▼
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-mono text-[var(--text-muted)] mb-2">DIFFICULTY</label>
+                        <select id="difficulty-select" class="w-full cyber-input p-3 rounded font-mono text-sm appearance-none">
+                            <option value="any">Any</option>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-mono text-[var(--text-muted)] mb-2">ITERATIONS (Questions)</label>
+                        <input type="number" id="num-questions" min="1" max="10" value="5" class="w-full cyber-input p-3 rounded font-mono text-sm">
+                    </div>
+                </div>
+
+                <div class="pt-6 flex justify-end">
+                    <button type="submit" id="btn-start" class="cyber-button font-mono py-3 px-8 rounded font-bold tracking-widest">
+                        EXECUTE_SESSION //
+                    </button>
+                </div>
+            </form>
+        </section>
+        <section id="screen-teach-notes" class="hidden cyber-panel p-6 md:p-10 rounded-lg space-y-6">
+            <h2 class="text-xl font-mono text-[var(--neon-cyan)] border-b border-[rgba(0,240,255,0.2)] pb-3">> STUDY_MODULE_LOADED</h2>
+            <div id="teach-notes-text" class="font-mono text-sm leading-relaxed whitespace-pre-wrap text-gray-200"></div>
+            <div class="flex justify-end pt-4">
+                <button id="btn-start-teach-quiz" class="cyber-button font-mono py-3 px-8 rounded font-bold">BEGIN_QUIZ //</button>
+            </div>
+        </section>
+
+        <section id="screen-question" class="hidden space-y-6">
+            <!-- Question Display -->
+            <div class="cyber-panel p-6 rounded-lg relative">
+                <div class="flex justify-between items-start mb-4">
+                    <span id="badge-topic" class="text-xs font-mono px-3 py-1 rounded bg-[rgba(0,240,255,0.1)] text-[var(--neon-cyan)] border border-[rgba(0,240,255,0.3)]">
+                        TOPIC
+                    </span>
+                    <span id="badge-gotcha" class="hidden gotcha-badge text-white text-xs font-bold px-3 py-1 rounded tracking-wider font-mono">
+                        ⚠ GOTCHA DETECTED
+                    </span>
+                </div>
+                <h3 id="question-text" class="text-lg md:text-xl font-medium leading-relaxed font-mono">
+                    Awaiting query...
+                </h3>
+            </div>
+
+            <!-- Input Area -->
+            <div id="input-container" class="cyber-panel p-6 rounded-lg">
+                <div class="flex border-b border-[rgba(0,240,255,0.2)] mb-6">
+                    <button type="button" id="tab-text" class="px-6 py-3 font-mono text-sm text-[var(--neon-cyan)] border-b-2 border-[var(--neon-cyan)] transition-colors">TEXT_MODE</button>
+                    <button type="button" id="tab-voice" class="px-6 py-3 font-mono text-sm text-[var(--text-muted)] hover:text-[var(--neon-cyan)] transition-colors">VOICE_MODE</button>
+                </div>
+
+                <!-- Text Mode View -->
+                <div id="view-text" class="block">
+                    <textarea id="answer-textarea" rows="6" class="w-full cyber-input p-4 rounded font-mono text-sm placeholder-gray-600 mb-4" placeholder="Enter your response..."></textarea>
+                    <div class="flex justify-end">
+                        <button id="btn-submit-text" class="cyber-button font-mono py-2 px-8 rounded font-bold">SUBMIT_DATA</button>
+                    </div>
+                </div>
+
+                <!-- Voice Mode View -->
+                <div id="view-voice" class="hidden flex-col items-center justify-center py-8">
+                    <div id="mic-status" class="hidden text-[var(--neon-red)] font-mono animate-pulse flex items-center gap-2 mb-6">
+                        <div class="w-3 h-3 rounded-full bg-[var(--neon-red)]"></div> RECORDING_AUDIO...
+                    </div>
+                    
+                    <button id="btn-record" class="cyber-button w-24 h-24 rounded-full flex items-center justify-center border-2 border-[var(--neon-cyan)] hover:bg-[rgba(0,240,255,0.1)] transition-all">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    
+                    <button id="btn-stop" class="hidden border border-[var(--neon-red)] text-[var(--neon-red)] hover:bg-red-900/20 w-24 h-24 rounded-full flex items-center justify-center transition-all shadow-[var(--red-glow)]">
+                         <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"></path></svg>
+                    </button>
+
+                    <div id="live-caption" class="hidden w-full max-w-md mt-6 p-4 rounded cyber-input font-mono text-sm text-[var(--neon-cyan)] min-h-[60px] whitespace-pre-wrap"></div>
+
+                    <div id="voice-preview-box" class="hidden w-full flex flex-col items-center mt-6 space-y-4">
+                        <audio id="audio-playback" controls class="w-full max-w-md h-10 opacity-80 rounded grayscale"></audio>
+                        <div class="flex gap-4 mt-4">
+                            <button id="btn-rerecord" class="px-6 py-2 font-mono text-sm text-[var(--text-muted)] hover:text-white border border-gray-700 rounded transition-colors">DISCARD</button>
+                            <button id="btn-submit-voice" class="cyber-button font-mono py-2 px-8 rounded font-bold">UPLOAD_AUDIO</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Area -->
+            <div id="result-container" class="hidden cyber-panel p-6 rounded-lg space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center gap-4 border-b border-[rgba(0,240,255,0.2)] pb-4">
+                    <h3 class="text-lg font-mono text-[var(--text-muted)]">EVALUATION:</h3>
+                    <span id="eval-verdict" class="text-2xl font-mono font-bold uppercase border-b-2 tracking-widest"></span>
+                </div>
+                
+                <div id="eval-transcript-box" class="hidden bg-gray-900/80 p-4 rounded border border-gray-800">
+                    <h4 class="text-xs font-mono text-[var(--text-muted)] mb-2">> PARSED_TRANSCRIPT</h4>
+                    <p id="eval-transcript" class="text-sm italic text-gray-300"></p>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-mono text-[var(--text-muted)] mb-2">> AI_REASONING</h4>
+                    <p id="eval-reasoning" class="text-sm leading-relaxed text-gray-200 font-mono"></p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-900/50 p-4 rounded border border-[rgba(57,255,20,0.2)]">
+                        <h4 class="text-xs font-mono text-[var(--neon-green)] mb-2">> OPTIMAL_SOLUTION</h4>
+                        <div id="eval-correct" class="font-mono text-sm text-gray-200 whitespace-pre-wrap"></div>
+                    </div>
+                    <div class="bg-gray-900/50 p-4 rounded border border-gray-800">
+                        <h4 class="text-xs font-mono text-[var(--text-muted)] mb-2">> DETAILED_EXPLANATION</h4>
+                        <p id="eval-explanation" class="text-sm text-gray-300"></p>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-[rgba(0,240,255,0.2)] flex justify-between items-center">
+                    <span id="question-progress" class="font-mono text-sm text-[var(--text-muted)]"></span>
+                    <button id="btn-next" class="cyber-button font-mono py-3 px-8 rounded font-bold flex gap-2 items-center">
+                        CONTINUE <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-dashboard" class="hidden space-y-6">
+            <div class="cyber-panel p-6 md:p-10 rounded-lg">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 class="text-2xl font-mono text-[var(--neon-cyan)] mb-1" style="text-shadow: var(--cyan-glow);">> SESSION_TERMINATED</h2>
+                        <p class="text-sm text-[var(--text-muted)] font-mono">Performance telemetry compiled.</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-mono font-bold text-white" id="dash-overall-score">--%</div>
+                        <div class="text-xs font-mono text-[var(--text-muted)]">OVERALL ACCURACY</div>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto mt-6 bg-black/40 rounded border border-gray-800">
+                    <table class="w-full text-left font-mono text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-[rgba(0,240,255,0.2)] text-[var(--neon-cyan)] bg-[rgba(0,240,255,0.05)]">
+                                <th class="py-3 px-4 font-normal">MODULE_ID</th>
+                                <th class="py-3 px-4 font-normal text-center">QUERIES</th>
+                                <th class="py-3 px-4 font-normal text-center">SUCCESS</th>
+                                <th class="py-3 px-4 font-normal text-right">ACCURACY</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-table-body" class="divide-y divide-gray-800">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-[rgba(0,240,255,0.2)] flex justify-between items-center">
+                    <div class="text-xs font-mono flex items-center gap-2">
+                        <div class="w-3 h-3 bg-red-900/50 border border-[var(--neon-red)] rounded-sm"></div>
+                        <span class="text-[var(--text-muted)]">Requires Recalibration (< 60%)</span>
+                    </div>
+                    <button id="btn-restart" class="cyber-button font-mono py-3 px-8 rounded font-bold">
+                        REBOOT_SYSTEM //
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        (function() {
+            // --- DATA & CONFIG ---
+            const API_BASE = 'http://localhost:8000';
+
+            // --- APP STATE ---
+            let state = {
+                sessionId: null,
+                questionId: null,
+                totalQuestions: 0,
+                currentQuestionIndex: 0,
+                inputMode: 'text', // 'text' | 'voice'
+                
+                // Voice State
+                isRecording: false,
+                mediaRecorder: null,
+                speechRecognition: null,
+                audioChunks: [],
+                audioBlob: null,
+                mode: 'practice', 
+
+            };
+
+            // --- DOM ELEMENTS ---
+            const DOM = {
+                screens: {
+                    setup: document.getElementById('screen-setup'),
+                    question: document.getElementById('screen-question'),
+                    dashboard: document.getElementById('screen-dashboard'),
+                    teachNotes: document.getElementById('screen-teach-notes')
+                },
+                errorToast: document.getElementById('error-toast'),
+                errorMessage: document.getElementById('error-message'),
+                sysStatus: document.getElementById('sys-status'),
+                
+                // Setup
+                topicSelect: document.getElementById('topic-select'),
+                difficultySelect: document.getElementById('difficulty-select'),
+                numQuestions: document.getElementById('num-questions'),
+                formSetup: document.getElementById('setup-form'),
+                btnStart: document.getElementById('btn-start'),
+                modeSelect: document.getElementById('mode-select'),
+                teachNotesText: document.getElementById('teach-notes-text'),
+                btnStartTeachQuiz: document.getElementById('btn-start-teach-quiz'),
+
+                // Question View
+                qText: document.getElementById('question-text'),
+                qTopic: document.getElementById('badge-topic'),
+                qGotcha: document.getElementById('badge-gotcha'),
+                qProgress: document.getElementById('question-progress'),
+                
+                // Inputs
+                inputContainer: document.getElementById('input-container'),
+                tabText: document.getElementById('tab-text'),
+                tabVoice: document.getElementById('tab-voice'),
+                viewText: document.getElementById('view-text'),
+                viewVoice: document.getElementById('view-voice'),
+                answerTextarea: document.getElementById('answer-textarea'),
+                btnSubmitText: document.getElementById('btn-submit-text'),
+                
+                // Voice UI
+                btnRecord: document.getElementById('btn-record'),
+                btnStop: document.getElementById('btn-stop'),
+                micStatus: document.getElementById('mic-status'),
+                liveCaption: document.getElementById('live-caption'),
+                voicePreviewBox: document.getElementById('voice-preview-box'),
+                audioPlayback: document.getElementById('audio-playback'),
+                btnRerecord: document.getElementById('btn-rerecord'),
+                btnSubmitVoice: document.getElementById('btn-submit-voice'),
+                
+                // Results
+                resultContainer: document.getElementById('result-container'),
+                evalVerdict: document.getElementById('eval-verdict'),
+                evalTranscriptBox: document.getElementById('eval-transcript-box'),
+                evalTranscript: document.getElementById('eval-transcript'),
+                evalReasoning: document.getElementById('eval-reasoning'),
+                evalCorrect: document.getElementById('eval-correct'),
+                evalExplanation: document.getElementById('eval-explanation'),
+                btnNext: document.getElementById('btn-next'),
+
+                // Dashboard
+                dashTable: document.getElementById('dashboard-table-body'),
+                dashScore: document.getElementById('dash-overall-score'),
+                btnRestart: document.getElementById('btn-restart')
+            };
+
+
+            // --- UI HELPERS ---
+            const ui = {
+                showScreen: (screenKey) => {
+                    Object.values(DOM.screens).forEach(el => el.classList.add('hidden'));
+                    DOM.screens[screenKey].classList.remove('hidden');
+                    window.scrollTo(0,0);
+                },
+                showError: (msg) => {
+                    DOM.errorMessage.textContent = msg;
+                    DOM.errorToast.classList.remove('hidden');
+                    setTimeout(() => ui.hideError(), 5000); // Auto hide after 5s
+                },
+                hideError: () => {
+                    DOM.errorToast.classList.add('hidden');
+                },
+                setLoading: (btn, isLoading, loadingText = 'PROCESSING') => {
+                    if (isLoading) {
+                        btn.disabled = true;
+                        btn.dataset.original = btn.innerHTML;
+                        btn.innerHTML = `<span class="animate-pulse">${loadingText}...</span>`;
+                    } else {
+                        btn.disabled = false;
+                        if(btn.dataset.original) btn.innerHTML = btn.dataset.original;
+                    }
+                },
+                
+            };
+            window.ui = ui; // Expose for inline onclick
+
+            
+            // --- API WRAPPER WITH FALLBACK ---
+           async function apiFetch(endpoint, options = {}) {
+                ui.hideError();
+                try {
+                    const res = await fetch(`${API_BASE}${endpoint}`, options);
+                    if (!res.ok) {
+                        if (res.status === 404) return { status: 404 };
+                        throw new Error(`Server returned ${res.status}`);
+                    }
+                    return await res.json();
+                } catch (error) {
+                    ui.showError(`Connection failed: ${error.message}`);
+                    throw error;
+                }
+            }
+
+            // --- STREAMING_CHUNK: Setup & Init ---
+            function humanizeTopic(topic) {
+                return topic.replace(/_/g, ' ');
+            }
+
+            async function loadTopics() {
+                try {
+                    const chapters = await apiFetch('/chapters/topics');
+                    if (!Array.isArray(chapters)) return;
+                    chapters.forEach(ch => {
+                        const group = document.createElement('optgroup');
+                        group.label = ch.name;
+                        ch.subtopics.forEach(st => {
+                            st.topics.forEach(topic => {
+                                const opt = document.createElement('option');
+                                opt.value = topic;
+                                opt.textContent = `${st.name} — ${humanizeTopic(topic)}`;
+                                group.appendChild(opt);
+                            });
+                        });
+                        DOM.topicSelect.appendChild(group);
+                    });
+                } catch (e) {
+                    // Falls back to "Random / Any topic" only — non-fatal, don't block init.
+                }
+            }
+
+            async function init() {
+                await loadTopics();
+
+                DOM.btnStartTeachQuiz.addEventListener('click', startTeachQuiz);
+
+                // Attach Listeners
+                DOM.formSetup.addEventListener('submit', handleStart);   // <- keep only this one
+                DOM.tabText.addEventListener('click', () => setMode('text'));
+                DOM.tabVoice.addEventListener('click', () => setMode('voice'));
+                DOM.btnSubmitText.addEventListener('click', submitTextAnswer);
+                DOM.btnNext.addEventListener('click', () => {
+                    if (state.mode === 'interview') {
+                        fetchInterviewNext();
+                    } else if (state.mode === 'teach') {
+                        startTeachQuiz();   // keep quizzing the same topic until REBOOT_SYSTEM
+                    } else {
+                        fetchNextQuestion();
+                    }
+                });
+                DOM.btnRestart.addEventListener('click', resetApp);
+
+                DOM.btnRecord.addEventListener('click', startRecording);
+                DOM.btnStop.addEventListener('click', stopRecording);
+                DOM.btnRerecord.addEventListener('click', resetAudioInput);
+                DOM.btnSubmitVoice.addEventListener('click', submitVoiceAnswer);
+            }
+
+            async function handleStart(e) {
+                e.preventDefault();
+                const num = parseInt(DOM.numQuestions.value, 10);
+                const payload = {
+                    topic: DOM.topicSelect.value || null,
+                    difficulty: DOM.difficultySelect.value === 'any' ? null : DOM.difficultySelect.value,
+                    num_questions: num
+                };
+                state.mode = DOM.modeSelect.value;
+
+                if (state.mode === 'teach')  {
+                    ui.setLoading(DOM.btnStart, true, 'LOADING_NOTES');
+                    state.teachTopic = DOM.topicSelect.value;
+                    if (!state.teachTopic) {
+                        ui.showError('Pick a specific topic for teaching mode — Random is not supported.');
+                        ui.setLoading(DOM.btnStart, false);
+                        return;
+                    }
+                    try {
+                        const data = await apiFetch('/session/start', {
+                            method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+                        });
+                        state.sessionId = data.id;
+                        const notesRes = await apiFetch('/teach/notes', {
+                            method: 'POST', headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify({ topic: state.teachTopic, session_id: state.sessionId })
+                        });
+                        DOM.teachNotesText.textContent = notesRes.notes;
+                        ui.showScreen('teachNotes');
+                    } catch (e) {
+                        ui.showError('Failed to load study module.');
+                    } finally {
+                        ui.setLoading(DOM.btnStart, false);
+                    }
+                    return;
+                }
+
+                if (state.mode === 'interview') {                     // <-- NEW BRANCH
+                    ui.setLoading(DOM.btnStart, true, 'INITIALIZING');
+                    try {
+                        const data = await apiFetch('/interview/start', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        state.sessionId = data.session_id;
+                        state.totalQuestions = data.num_questions;
+                        state.currentQuestionIndex = 0;
+                        await fetchInterviewNext();
+                        ui.showScreen('question');
+                    } catch (e) {
+                        ui.showError('Interview initialization failed.');
+                    } finally {
+                        ui.setLoading(DOM.btnStart, false);
+                    }
+                    return;
+                }
+
+                // practice mode — unchanged
+                ui.setLoading(DOM.btnStart, true, 'INITIALIZING');
+                try {
+                    const data = await apiFetch('/session/start', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    state.sessionId = data.id;
+                    state.totalQuestions = data.num_questions;
+                    state.currentQuestionIndex = 0;
+                    await fetchNextQuestion();
+                    ui.showScreen('question');
+                } catch (e) {
+                    ui.showError('System initialization failed.');
+                } finally {
+                    ui.setLoading(DOM.btnStart, false);
+                }
+            }
+
+            function setMode(mode) {
+                state.inputMode = mode;
+                if (mode === 'text') {
+                    DOM.tabText.className = 'px-6 py-3 font-mono text-sm text-[var(--neon-cyan)] border-b-2 border-[var(--neon-cyan)] transition-colors';
+                    DOM.tabVoice.className = 'px-6 py-3 font-mono text-sm text-[var(--text-muted)] hover:text-[var(--neon-cyan)] transition-colors';
+                    DOM.viewText.classList.remove('hidden');
+                    DOM.viewVoice.classList.add('hidden');
+                    DOM.viewVoice.classList.remove('flex');
+                } else {
+                    DOM.tabVoice.className = 'px-6 py-3 font-mono text-sm text-[var(--neon-cyan)] border-b-2 border-[var(--neon-cyan)] transition-colors';
+                    DOM.tabText.className = 'px-6 py-3 font-mono text-sm text-[var(--text-muted)] hover:text-[var(--neon-cyan)] transition-colors';
+                    DOM.viewText.classList.add('hidden');
+                    DOM.viewVoice.classList.remove('hidden');
+                    DOM.viewVoice.classList.add('flex');
+                }
+            }
+
+            // --- STREAMING_CHUNK: Voice Recording Logic ---
+
+            // Live on-screen captions only, purely visual. Grading always uses the
+            // server-side Whisper transcript from the uploaded audio, not this text.
+            function startLivePreview() {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRecognition) return null; // unsupported browser (e.g. Firefox) — silently skip
+
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                let finalText = '';
+                recognition.onresult = (event) => {
+                    let interim = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const chunk = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) finalText += chunk + ' ';
+                        else interim += chunk;
+                    }
+                    DOM.liveCaption.textContent = (finalText + interim).trim() || 'Listening...';
+                };
+                recognition.onerror = (e) => console.warn('Live caption error:', e.error);
+
+                recognition.start();
+                return recognition;
+            }
+
+            async function startRecording() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    state.mediaRecorder = new MediaRecorder(stream);
+                    state.audioChunks = [];
+
+                    state.mediaRecorder.ondataavailable = e => {
+                        if (e.data.size > 0) state.audioChunks.push(e.data);
+                    };
+
+                    state.mediaRecorder.onstop = () => {
+                        state.audioBlob = new Blob(state.audioChunks, { type: 'audio/webm' });
+                        const audioUrl = URL.createObjectURL(state.audioBlob);
+                        DOM.audioPlayback.src = audioUrl;
+                        
+                        // Switch UI state
+                        DOM.micStatus.classList.add('hidden');
+                        DOM.btnStop.classList.add('hidden');
+                        DOM.voicePreviewBox.classList.remove('hidden');
+                    };
+
+                    state.mediaRecorder.start();
+                    state.isRecording = true;
+                    
+                    DOM.btnRecord.classList.add('hidden');
+                    DOM.btnStop.classList.remove('hidden');
+                    DOM.micStatus.classList.remove('hidden');
+
+                    DOM.liveCaption.textContent = 'Listening...';
+                    DOM.liveCaption.classList.remove('hidden');
+                    state.speechRecognition = startLivePreview();
+                    
+                } catch (err) {
+                    console.warn("Mic Error:", err);
+                    ui.showError("Microphone access denied or unavailable. Fallback to TEXT_MODE.");
+                    setMode('text');
+                }
+            }
+
+            function stopRecording() {
+                if (state.mediaRecorder && state.isRecording) {
+                    state.mediaRecorder.stop();
+                    state.isRecording = false;
+                    // Release microphone hardware explicitly
+                    state.mediaRecorder.stream.getTracks().forEach(t => t.stop());
+                }
+                if (state.speechRecognition) {
+                    state.speechRecognition.stop();
+                    state.speechRecognition = null;
+                }
+            }
+
+            function resetAudioInput() {
+                state.audioBlob = null;
+                DOM.voicePreviewBox.classList.add('hidden');
+                DOM.btnRecord.classList.remove('hidden');
+                DOM.audioPlayback.src = '';
+                DOM.liveCaption.classList.add('hidden');
+                DOM.liveCaption.textContent = '';
+                if (state.speechRecognition) {
+                    state.speechRecognition.stop();
+                    state.speechRecognition = null;
+                }
+            }
+
+
+            // --- STREAMING_CHUNK: Answer Submission ---
+            async function submitTextAnswer() {
+                const text = DOM.answerTextarea.value.trim();
+                if (!text) return ui.showError('Input payload cannot be empty.');
+
+                ui.setLoading(DOM.btnSubmitText, true, 'TRANSMITTING');
+                try {
+                    const res = await apiFetch(`/session/${state.sessionId}/answer`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question_id: state.questionId, answer_text: text })
+                    });
+                    displayResult(res, false);
+                } catch (e) {
+                    // Handled in apiFetch
+                } finally {
+                    ui.setLoading(DOM.btnSubmitText, false);
+                }
+            }
+
+            async function submitVoiceAnswer() {
+                if (!state.audioBlob) return;
+
+                ui.setLoading(DOM.btnSubmitVoice, true, 'UPLOADING');
+                const formData = new FormData();
+                formData.append('audio', state.audioBlob, 'recording.webm');
+
+                try {
+                    const res = await apiFetch(`/session/${state.sessionId}/answer/voice?question_id=${state.questionId}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    displayResult(res, true);
+                } catch (e) {
+                } finally {
+                    ui.setLoading(DOM.btnSubmitVoice, false);
+                }
+            }
+
+            function displayResult(data, isVoice) {
+                DOM.inputContainer.classList.add('hidden');
+                DOM.resultContainer.classList.remove('hidden');
+
+                // Apply Verdict Style
+                DOM.evalVerdict.textContent = data.verdict;
+                DOM.evalVerdict.className = 'text-2xl font-mono font-bold uppercase border-b-2 tracking-widest ';
+                if (data.verdict === 'correct') DOM.evalVerdict.classList.add('verdict-correct');
+                else if (data.verdict === 'partial') DOM.evalVerdict.classList.add('verdict-partial');
+                else DOM.evalVerdict.classList.add('verdict-wrong');
+
+                // Transcript
+                if (isVoice && data.transcript) {
+                    DOM.evalTranscript.textContent = `"${data.transcript}"`;
+                    DOM.evalTranscriptBox.classList.remove('hidden');
+                } else {
+                    DOM.evalTranscriptBox.classList.add('hidden');
+                }
+
+                // Fill Text
+                DOM.evalReasoning.textContent = data.reasoning;
+                DOM.evalCorrect.textContent = data.correct_answer;
+                DOM.evalExplanation.textContent = data.explanation;
+            }
+
+            // --- STREAMING_CHUNK: Dashboard ---
+            async function loadDashboard() {
+                ui.showScreen('dashboard');
+                DOM.dashTable.innerHTML = `<tr><td colspan="4" class="text-center py-8">Compiling telemetry...</td></tr>`;
+                
+                try {
+                    const data = await apiFetch('/dashboard');
+                    const weakTopics = data.weak_topics || [];
+                    
+                    DOM.dashTable.innerHTML = '';
+                    
+                    let totalQ = 0;
+                    let totalC = 0;
+
+                    if(data.stats && data.stats.length > 0) {
+                        data.stats.forEach(stat => {
+                            totalQ += stat.total;
+                            totalC += stat.correct;
+                            
+                            const tr = document.createElement('tr');
+                            const isWeak = weakTopics.includes(stat.topic) || (stat.accuracy < 0.6);
+                            
+                            if (isWeak) tr.classList.add('bg-red-900/20', 'text-[var(--neon-red)]');
+                            
+                            tr.innerHTML = `
+                                <td class="py-3 px-4 border-b border-gray-800">${stat.topic} ${isWeak ? ' ⚠' : ''}</td>
+                                <td class="py-3 px-4 border-b border-gray-800 text-center">${stat.total}</td>
+                                <td class="py-3 px-4 border-b border-gray-800 text-center">${stat.correct}</td>
+                                <td class="py-3 px-4 border-b border-gray-800 text-right">${(stat.accuracy).toFixed(0)}%</td>
+                            `;
+                            DOM.dashTable.appendChild(tr);
+                        });
+
+                        const overall = totalQ > 0 ? (totalC / totalQ * 100).toFixed(1) : 0;
+                        DOM.dashScore.textContent = `${overall}%`;
+                        DOM.dashScore.style.color = overall >= 80 ? 'var(--neon-green)' : (overall >= 60 ? 'var(--neon-yellow)' : 'var(--neon-red)');
+                        
+                    } else {
+                        DOM.dashTable.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500">NO_DATA_FOUND</td></tr>`;
+                    }
+                } catch (e) {
+                    DOM.dashTable.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-[var(--neon-red)]">ERR_FETCHING_TELEMETRY</td></tr>`;
+                }
+            }
+
+            function resetApp() {
+                state.sessionId = null;
+                state.questionId = null;
+                DOM.formSetup.reset();
+                ui.showScreen('setup');
+            }
+
+            // Boot
+            document.addEventListener('DOMContentLoaded', init);
+            
+            async function startTeachQuiz() {
+                ui.setLoading(DOM.btnStartTeachQuiz, true, 'GENERATING');
+                try {
+                    const res = await apiFetch('/teach/quiz', {
+                        method: 'POST', headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({ session_id: state.sessionId, topic: state.teachTopic })
+                    });
+                    state.questionId = res.question_id;   // real Question row now, /answer needs this
+                    DOM.qText.textContent = res.question;
+                    DOM.qTopic.textContent = 'TEACH_MODE';
+                    DOM.qGotcha.classList.add('hidden');
+                    DOM.qProgress.textContent = '';
+                    DOM.answerTextarea.value = '';
+                    resetAudioInput();
+                    DOM.inputContainer.classList.remove('hidden');
+                    DOM.resultContainer.classList.add('hidden');
+                    setMode('text');
+                    ui.showScreen('question');
+                } catch (e) {
+                    ui.showError('Quiz generation failed.');
+                } finally {
+                    ui.setLoading(DOM.btnStartTeachQuiz, false);
+                }
+            }
+
+            async function fetchNextQuestion() {
+                const q = await apiFetch(`/session/${state.sessionId}/next`, { method: 'GET' });
+                if (q.status === 404) {
+                    return loadDashboard(); // session complete
+                }
+                state.questionId = q.id;
+                state.currentQuestionIndex++;
+                DOM.qText.textContent = q.question;
+                DOM.qTopic.textContent = q.topic;
+                DOM.qGotcha.classList.toggle('hidden', !q.is_gotcha);
+                DOM.qProgress.textContent = `${state.currentQuestionIndex} / ${state.totalQuestions}`;
+                DOM.answerTextarea.value = '';
+                resetAudioInput();
+                DOM.inputContainer.classList.remove('hidden');
+                DOM.resultContainer.classList.add('hidden');
+            }
+
+            async function fetchInterviewNext() {
+                const q = await apiFetch(`/interview/${state.sessionId}/next`, { method: 'GET' });
+                if (q.round === 'done') return loadDashboard();
+
+                state.questionId = q.question_id;
+                state.currentQuestionIndex++;
+                DOM.qText.textContent = q.question_text;
+                DOM.qTopic.textContent = q.round.toUpperCase();   // "CONCEPTUAL" or "PRACTICAL"
+                DOM.qGotcha.classList.add('hidden');               // interview questions don't use gotcha badge
+                DOM.qProgress.textContent = q.is_final ? 'FINAL QUESTION' : `${state.currentQuestionIndex} / ${state.totalQuestions}`;
+                DOM.answerTextarea.value = '';
+                resetAudioInput();
+                DOM.inputContainer.classList.remove('hidden');
+                DOM.resultContainer.classList.add('hidden');
+                setMode('text');
+            }
+        })();
+    </script>
+</body>
+</html>

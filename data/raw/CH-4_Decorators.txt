@@ -1,0 +1,292 @@
+Decorators 
+[
+{
+"question": "What is a decorator factory in Python, and how is it different from a normal decorator?\n\n`python\ndef repeat(n):\n    def decorator(func):\n        def wrapper(*args, **kwargs):\n            for _ in range(n):\n                func(*args, **kwargs)\n        return wrapper\n    return decorator\n\n@repeat(3)\ndef greet():\n    print(\"Hello\")\n`",
+"correct_answer": "A decorator factory is a function that accepts arguments and returns a decorator. Unlike a normal decorator, which directly receives the function being decorated, a decorator factory first receives configuration arguments such as n.",
+"explanation": "Here, repeat(3) is executed first and returns decorator. Then decorator receives greet as its argument and returns wrapper. This requires an additional nested function level compared with a normal decorator.",
+"topic": "decorator_factories",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "Why are nested functions commonly used when creating decorators with arguments?\n\n`python\ndef prefix(text):\n    def decorator(func):\n        def wrapper(*args, **kwargs):\n            print(text)\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n`",
+"correct_answer": "Nested functions allow the outer function to receive configuration arguments, the middle function to receive the target function, and the inner function to execute the decorated behavior.",
+"explanation": "The three levels have different responsibilities: prefix() receives the decorator argument, decorator() receives the function, and wrapper() executes when the decorated function is called. The inner functions can access variables from their enclosing scopes through closures.",
+"topic": "decorator_factories",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "In the following code, what does @repeat(2) actually do?\n\n`python\ndef repeat(n):\n    def decorator(func):\n        def wrapper():\n            for _ in range(n):\n                func()\n        return wrapper\n    return decorator\n\n@repeat(2)\ndef hello():\n    print(\"Hi\")\n`",
+"correct_answer": "It is equivalent to hello = repeat(2)(hello).",
+"explanation": "First, repeat(2) returns the decorator function. That decorator then receives the original hello function and returns wrapper. Finally, hello refers to the returned wrapper function.",
+"topic": "decorator_factories",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What is the correct order of function calls when this decorator factory is used?\n\n`python\ndef message(text):\n    print(\"Factory called\")\n    def decorator(func):\n        print(\"Decorator called\")\n        def wrapper():\n            print(text)\n            func()\n        return wrapper\n    return decorator\n\n@message(\"Hello\")\ndef greet():\n    print(\"Welcome\")\n\ngreet()\n`",
+"correct_answer": "When the function definition is reached, 'Factory called' is printed, then 'Decorator called'. When greet() is called, 'Hello' and then 'Welcome' are printed.",
+"explanation": "Decorator expressions are evaluated when the function is defined, not when it is called. Therefore, message("Hello") and the returned decorator execute during definition. The wrapper executes only when greet() is called.",
+"topic": "decorator_factories",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What is the purpose of *args and **kwargs in the wrapper of a decorator factory?\n\n`python\ndef log_call(message):\n    def decorator(func):\n        def wrapper(*args, **kwargs):\n            print(message)\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n`",
+"correct_answer": "They allow the wrapper to accept and forward any positional and keyword arguments supported by the original function.",
+"explanation": "Using *args and **kwargs makes the decorator more reusable because it can decorate functions with different parameter lists. The arguments are passed to the original function using func(*args, **kwargs).",
+"topic": "decorator_factories",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is a closure, and how is it useful in this decorator factory?\n\n`python\ndef multiply_by(n):\n    def decorator(func):\n        def wrapper(x):\n            return func(x) * n\n        return wrapper\n    return decorator\n\n@multiply_by(5)\ndef square(x):\n    return x * x\n`",
+"correct_answer": "A closure is a function that remembers variables from its enclosing scope even after the enclosing function has finished. Here, wrapper remembers the value of n.",
+"explanation": "When multiply_by(5) is called, n is 5. The returned wrapper retains access to n through a closure. Therefore, calling square(2) results in 4 * 5, which is 20.",
+"topic": "decorator_factories",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "What will the following code return?\n\n`python\ndef add_value(value):\n    def decorator(func):\n        def wrapper(x):\n            return func(x) + value\n        return wrapper\n    return decorator\n\n@add_value(10)\ndef get_number(x):\n    return x\n\nprint(get_number(5))\n`",
+"correct_answer": "15",
+"explanation": "add_value(10) creates a decorator that remembers value = 10. The decorated get_number function returns 5, and wrapper adds 10 to that result, producing 15.",
+"topic": "decorator_factories",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "Can a decorator factory accept multiple arguments? Give an example.",
+"correct_answer": "Yes. A decorator factory can accept multiple configuration arguments and use them inside the decorator or wrapper.",
+"explanation": "For example:\n\n`python\ndef log(level, prefix):\n    def decorator(func):\n        def wrapper(*args, **kwargs):\n            print(f\"{prefix} [{level}]\")\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n\n@log(\"INFO\", \"APP\")\ndef greet():\n    print(\"Hello\")\n`\n\nHere, log() is the factory and accepts two arguments: level and prefix.",
+"topic": "decorator_factories",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is wrong with this decorator factory if the decorated function accepts arguments?\n\n`python\ndef prefix(text):\n    def decorator(func):\n        def wrapper():\n            return text + func()\n        return wrapper\n    return decorator\n\n@prefix(\"Hello \")\ndef greet(name):\n    return name\n`",
+"correct_answer": "wrapper() does not accept or forward the name argument, so calling greet("Aniket") will raise a TypeError.",
+"explanation": "The wrapper should generally accept the same arguments as the decorated function. A common solution is:\n\n`python\ndef wrapper(*args, **kwargs):\n    return text + func(*args, **kwargs)\n`\n\nThis allows the decorator to work with functions having different argument lists.",
+"topic": "decorator_factories",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What is the purpose of functools.wraps when writing a decorator factory?\n\n`python\nfrom functools import wraps\n\ndef log(message):\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            print(message)\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n`",
+"correct_answer": "functools.wraps preserves important metadata of the original function, such as its **name** and **doc**, when it is replaced by the wrapper.",
+"explanation": "Without @wraps(func), the decorated function's metadata can refer to wrapper instead of the original function. Using @wraps improves debugging, introspection, documentation, and compatibility with tools that inspect functions.",
+"topic": "decorator_factories",
+"difficulty": "medium",
+"is_gotcha": false
+}
+]
+
+Class based decorators
+
+[
+{
+"question": "What is a class-based decorator in Python, and what role does **call**() play?\n\n`python\nclass MyDecorator:\n    def __init__(self, func):\n        self.func = func\n\n    def __call__(self):\n        print(\"Before function\")\n        self.func()\n        print(\"After function\")\n\n@MyDecorator\ndef greet():\n    print(\"Hello\")\n\ngreet()\n`",
+"correct_answer": "A class-based decorator is a class used to modify or extend the behavior of a function. The **call**() method makes an instance of the class callable like a normal function.",
+"explanation": "When @MyDecorator is applied, Python effectively creates an instance using MyDecorator(greet). Later, calling greet() actually calls that instance's **call**() method. Inside **call**(), self.func() executes the original function.",
+"topic": "class_decorators",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What happens internally when this class-based decorator is applied?\n\n`python\nclass Decorator:\n    def __init__(self, func):\n        self.func = func\n\n    def __call__(self):\n        return self.func()\n\n@Decorator\ndef hello():\n    return \"Hi\"\n`",
+"correct_answer": "The decorator syntax is approximately equivalent to hello = Decorator(hello).",
+"explanation": "The original hello function is passed to the Decorator class constructor. The resulting Decorator instance replaces the original hello name. Because the instance implements **call**(), hello() still works like a function.",
+"topic": "class_decorators",
+"difficulty": "easy",
+"is_gotcha": true
+},
+{
+"question": "Why is **call**() required in a class-based decorator?\n\n`python\nclass Logger:\n    def __init__(self, func):\n        self.func = func\n\n    def __call__(self):\n        print(\"Function called\")\n        return self.func()\n`",
+"correct_answer": "**call**() allows the decorator object to be called using function-call syntax, such as obj().",
+"explanation": "Instances of a class are not normally callable. Defining **call**() makes the instance callable. In a decorator, this allows the decorated function name to remain usable with normal syntax such as greet().",
+"topic": "class_decorators",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "How can a class-based decorator handle functions that accept arguments?\n\n`python\nclass Logger:\n    def __init__(self, func):\n        self.func = func\n\n    def __call__(self, *args, **kwargs):\n        print(\"Calling function\")\n        return self.func(*args, **kwargs)\n\n@Logger\ndef add(a, b):\n    return a + b\n\nprint(add(2, 3))\n`",
+"correct_answer": "The **call**() method should accept *args and **kwargs and forward them to the original function using self.func(*args, **kwargs).",
+"explanation": "Using *args and **kwargs allows the class-based decorator to support functions with different positional and keyword arguments. In this example, add(2, 3) passes 2 and 3 to **call**(), which forwards them to the original add function.",
+"topic": "class_decorators",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "What will this code print?\n\n`python\nclass Demo:\n    def __init__(self, func):\n        print(\"Constructor\")\n        self.func = func\n\n    def __call__(self):\n        print(\"Call\")\n        self.func()\n\n@Demo\ndef greet():\n    print(\"Hello\")\n\ngreet()\n`",
+"correct_answer": "It prints, in order: Constructor, Call, Hello.",
+"explanation": "The constructor runs when the decorator is applied during function definition, so Constructor is printed first. Later, greet() calls the decorator instance, which invokes **call**(). **call**() prints Call and then executes the original function, printing Hello.",
+"topic": "class_decorators",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "Can a class-based decorator store state between function calls?\n\n`python\nclass Counter:\n    def __init__(self, func):\n        self.func = func\n        self.count = 0\n\n    def __call__(self, *args, **kwargs):\n        self.count += 1\n        print(\"Calls:\", self.count)\n        return self.func(*args, **kwargs)\n\n@Counter\ndef greet():\n    print(\"Hello\")\n\ngreet()\ngreet()\n`",
+"correct_answer": "Yes. The decorator instance can store state in instance attributes, so count increases and persists across calls.",
+"explanation": "The Counter instance is created once when the decorator is applied. Its count attribute is initialized to 0 and is updated each time **call**() executes. Therefore, the two calls print Calls: 1 and Calls: 2.",
+"topic": "class_decorators",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "What is the difference between a class-based decorator and a decorator factory?\n\n`python\nclass Logger:\n    def __init__(self, func):\n        self.func = func\n\n    def __call__(self):\n        print(\"Logged\")\n        return self.func()\n\n@Logger\ndef greet():\n    print(\"Hello\")\n`",
+"correct_answer": "A class-based decorator typically uses a class instance to wrap a function, while a decorator factory is a function that accepts configuration arguments and returns a decorator.",
+"explanation": "In this example, Logger receives the function directly through **init**. A decorator factory would typically have an additional outer function for configuration, such as @log("INFO"). Class-based decorators are useful when the decorator needs to maintain state or organize behavior using instance attributes and methods.",
+"topic": "class_decorators",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "What is a common issue with function metadata when using a class-based decorator?\n\n`python\nclass Decorator:\n    def __init__(self, func):\n        self.func = func\n\n    def __call__(self, *args, **kwargs):\n        return self.func(*args, **kwargs)\n\n@Decorator\ndef greet():\n    \"\"\"Greets the user.\"\"\"\n    print(\"Hello\")\n\nprint(greet.__name__)\n`",
+"correct_answer": "The decorated object is a Decorator instance, not the original function, so attributes such as **name** may not be available directly.",
+"explanation": "Unlike a function wrapper where functools.wraps can preserve metadata, a class-based decorator replaces the function with an instance. The original function is stored in self.func. A common approach is to expose the needed metadata explicitly or use functools.update_wrapper(self, func) inside **init**().",
+"topic": "class_decorators",
+"difficulty": "medium",
+"is_gotcha": true
+}
+]
+
+Stacking multiple decorators
+
+[
+{
+"question": "What does stacking multiple decorators mean in Python?\n\n`python\ndef decorator1(func):\n    def wrapper():\n        print(\"Decorator 1\")\n        func()\n    return wrapper\n\ndef decorator2(func):\n    def wrapper():\n        print(\"Decorator 2\")\n        func()\n    return wrapper\n\n@decorator1\n@decorator2\ndef greet():\n    print(\"Hello\")\n\ngreet()\n`",
+"correct_answer": "Stacking multiple decorators means applying more than one decorator to the same function. The decorators are applied from the bottom upward, so this is equivalent to greet = decorator1(decorator2(greet)).",
+"explanation": "decorator2 first wraps the original greet function. Then decorator1 wraps the result returned by decorator2. When greet() is called, the outermost decorator (decorator1) starts execution first.",
+"topic": "decorator_stacking",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is the execution order of the following stacked decorators?\n\n`python\ndef first(func):\n    def wrapper():\n        print(\"First before\")\n        func()\n        print(\"First after\")\n    return wrapper\n\ndef second(func):\n    def wrapper():\n        print(\"Second before\")\n        func()\n        print(\"Second after\")\n    return wrapper\n\n@first\n@second\ndef greet():\n    print(\"Hello\")\n\ngreet()\n`",
+"correct_answer": "The output is:\nFirst before\nSecond before\nHello\nSecond after\nFirst after",
+"explanation": "first is the outer decorator and second is the inner decorator. The outer wrapper executes first, then calls the inner wrapper. After the inner wrapper finishes, control returns to the outer wrapper.",
+"topic": "decorator_stacking",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "Which decorator is applied first in this code?\n\n`python\n@decorator_a\n@decorator_b\n@decorator_c\ndef process():\n    pass\n`",
+"correct_answer": "decorator_c is applied first, then decorator_b, and finally decorator_a.",
+"explanation": "Decorator application proceeds from the function upward. The expression is equivalent to process = decorator_a(decorator_b(decorator_c(process))). However, when process() is later called, decorator_a is the outermost layer and therefore executes first.",
+"topic": "decorator_stacking",
+"difficulty": "easy",
+"is_gotcha": true
+},
+{
+"question": "What is the difference between decorator application order and decorator execution order?\n\n`python\n@A\n@B\ndef func():\n    print(\"Function\")\n`",
+"correct_answer": "Decorator B is applied first, then A. But when func() is called, A's wrapper executes first, followed by B's wrapper and then the original function.",
+"explanation": "Application order describes how the function is wrapped: func = A(B(func)). Execution order starts with the outermost wrapper, A, because A is the final decorator applied to the already-wrapped function.",
+"topic": "decorator_stacking",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What will this code print?\n\n`python\ndef one(func):\n    print(\"Applying one\")\n    def wrapper():\n        print(\"Running one\")\n        func()\n    return wrapper\n\ndef two(func):\n    print(\"Applying two\")\n    def wrapper():\n        print(\"Running two\")\n        func()\n    return wrapper\n\n@one\n@two\ndef greet():\n    print(\"Hello\")\n\ngreet()\n`",
+"correct_answer": "The output is:\nApplying two\nApplying one\nRunning one\nRunning two\nHello",
+"explanation": "Decorator functions are executed during function definition. Since two is closest to greet, two runs first and returns its wrapper. Then one receives that wrapper and runs. Later, calling greet() executes one wrapper first, followed by two's wrapper and the original function.",
+"topic": "decorator_stacking",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What happens if one decorator in a stack does not call the function it receives?\n\n`python\ndef stop(func):\n    def wrapper():\n        print(\"Stopped\")\n    return wrapper\n\ndef log(func):\n    def wrapper():\n        print(\"Logged\")\n        func()\n    return wrapper\n\n@stop\n@log\ndef greet():\n    print(\"Hello\")\n\ngreet()\n`",
+"correct_answer": "Only "Stopped" is printed. The original function and the inner log decorator are never executed.",
+"explanation": "stop is the outermost decorator. Its wrapper does not call func(), so execution stops there. The inner decorated function exists inside stop's closure, but it is never invoked.",
+"topic": "decorator_stacking",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "How can multiple decorators be used to combine behaviors such as logging and authentication?\n\n`python\ndef log(func):\n    def wrapper(*args, **kwargs):\n        print(\"Logging\")\n        return func(*args, **kwargs)\n    return wrapper\n\ndef authenticate(func):\n    def wrapper(*args, **kwargs):\n        print(\"Checking user\")\n        return func(*args, **kwargs)\n    return wrapper\n\n@log\n@authenticate\ndef dashboard():\n    print(\"Dashboard\")\n`",
+"correct_answer": "Each decorator can handle a separate concern. In this example, log runs first, then authenticate, and finally dashboard.",
+"explanation": "Stacking decorators allows behavior to be composed without putting all logic into one decorator. The equivalent wrapping is dashboard = log(authenticate(dashboard)). The order matters because changing the decorator order changes the order in which the behaviors execute.",
+"topic": "decorator_stacking",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "If the order of these two decorators is swapped, can the program's behavior change?\n\n`python\n@validate\n@log\ndef save(data):\n    pass\n\n# Compared with\n@log\n@validate\ndef save(data):\n    pass\n`",
+"correct_answer": "Yes. Swapping decorators changes their nesting and therefore their execution order. In the first version, validate runs before log's inner wrapper; in the second version, log runs before validate.",
+"explanation": "The first version is save = validate(log(save)), while the second is save = log(validate(save)). Decorator stacking is order-dependent whenever the decorators perform observable actions, validation, authentication, logging, transformations, or other side effects.",
+"topic": "decorator_stacking",
+"difficulty": "medium",
+"is_gotcha": false
+}
+]
+ 
+
+Functools wraps 
+
+
+[
+{
+"question": "What is functools.wraps, and why is it commonly used when writing decorators?\n\n`python\nfrom functools import wraps\n\ndef log(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        print(\"Calling function\")\n        return func(*args, **kwargs)\n    return wrapper\n`",
+"correct_answer": "functools.wraps is a helper decorator used on a wrapper function to preserve metadata of the original decorated function, such as its name and docstring.",
+"explanation": "Without @wraps(func), the decorated function usually gets metadata from wrapper. @wraps(func) copies important attributes from func to wrapper, making the decorated function look more like the original function during introspection.",
+"topic": "functools_wraps",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What will this code print without using functools.wraps?\n\n`python\ndef decorator(func):\n    def wrapper():\n        return func()\n    return wrapper\n\n@decorator\ndef greet():\n    \"\"\"Greets the user.\"\"\"\n    return \"Hello\"\n\nprint(greet.__name__)\nprint(greet.__doc__)\n`",
+"correct_answer": "It prints "wrapper" for **name** and None for **doc**.",
+"explanation": "The name greet now refers to the wrapper function. Since wrapper has no docstring, its **doc** is None. The original function's metadata is not automatically preserved when a decorator replaces it with a wrapper.",
+"topic": "functools_wraps",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "How does adding functools.wraps change the previous example?\n\n`python\nfrom functools import wraps\n\ndef decorator(func):\n    @wraps(func)\n    def wrapper():\n        return func()\n    return wrapper\n\n@decorator\ndef greet():\n    \"\"\"Greets the user.\"\"\"\n    return \"Hello\"\n\nprint(greet.__name__)\nprint(greet.__doc__)\n`",
+"correct_answer": "It prints "greet" for **name** and "Greets the user." for **doc**.",
+"explanation": "@wraps(func) preserves important metadata from the original greet function on wrapper. Therefore, introspection sees the decorated function as greet rather than simply wrapper.",
+"topic": "functools_wraps",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "Does functools.wraps change the actual behavior of the decorated function?\n\n`python\nfrom functools import wraps\n\ndef decorator(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        print(\"Before\")\n        return func(*args, **kwargs)\n    return wrapper\n`",
+"correct_answer": "No. functools.wraps primarily preserves function metadata; it does not automatically change the decorator's execution logic.",
+"explanation": "The wrapper still controls what happens before and after the original function is called. @wraps simply helps preserve attributes such as **name**, **doc**, and related metadata from the original function.",
+"topic": "functools_wraps",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "Why can losing **name** be a practical problem when using decorators?\n\n`python\ndef decorator(func):\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n\n@decorator\ndef calculate():\n    return 10\n\nprint(calculate.__name__)\n`",
+"correct_answer": "The function name may appear as "wrapper" instead of "calculate", which can make debugging, logging, tracing, and introspection less informative.",
+"explanation": "The name calculate refers to the wrapper after decoration. Without functools.wraps, tools inspecting calculate may see wrapper instead of the original function name. This can make stack traces and debugging output harder to understand.",
+"topic": "functools_wraps",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "Which statement about functools.wraps is correct?\n\n`python\nfrom functools import wraps\n\ndef decorator(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n`",
+"correct_answer": "wraps is itself a decorator factory that returns a decorator used to update the wrapper's metadata from the original function.",
+"explanation": "functools.wraps(func) receives the original function and returns a decorator. Applying it as @wraps(func) updates the wrapper's metadata. This is why the syntax requires parentheses around func.",
+"topic": "functools_wraps",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What is the difference between @decorator and @wraps(func) in this code?\n\n`python\n@decorator\ndef greet():\n    pass\n\n# Inside decorator:\n@wraps(func)\ndef wrapper():\n    pass\n`",
+"correct_answer": "@decorator applies the custom decorator to greet, while @wraps(func) preserves metadata of greet on the wrapper created by the custom decorator.",
+"explanation": "The outer decorator changes or extends the function's behavior. functools.wraps is a helper used inside that decorator so that replacing the original function with a wrapper does not unnecessarily lose important metadata.",
+"topic": "functools_wraps",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "Does functools.wraps make the wrapper function the original function?\n\n`python\nfrom functools import wraps\n\ndef decorator(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs)\n    return wrapper\n`",
+"correct_answer": "No. The wrapper is still a different function, but functools.wraps copies important metadata and sets **wrapped** to reference the original function.",
+"explanation": "The decorated object remains the wrapper. However, @wraps provides useful metadata preservation and sets wrapper.**wrapped** to the original function. This also helps introspection tools and utilities such as inspect.unwrap() identify the underlying function.",
+"topic": "functools_wraps",
+"difficulty": "medium",
+"is_gotcha": true
+}
+]

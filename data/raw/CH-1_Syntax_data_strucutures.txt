@@ -1,0 +1,242 @@
+TYPE HINTS
+
+[
+  {
+    "question": "In Python 3.9+, what is the recommended way to type hint a list of integers?",
+    "correct_answer": "Using the built-in list[int].",
+    "explanation": "Starting in Python 3.9 (PEP 585), standard collections can be used directly for type hinting without needing to import List from the typing module.",
+    "topic": "type_hints",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "What is the exact meaning of `Optional[str]`?",
+    "correct_answer": "It means the value can be either a string or None. It is strictly equivalent to `Union[str, None]`.",
+    "explanation": "Optional does not mean the argument is optional in the function call (that requires a default value like `= None`). It simply means None is a valid value.",
+    "topic": "type_hints",
+    "difficulty": "medium",
+    "is_gotcha": true
+  },
+  {
+    "question": "What happens at runtime if you pass a string to a function argument that is type-hinted as `int`?",
+    "correct_answer": "Nothing happens; the code runs normally unless the function explicitly performs an operation that fails with a string.",
+    "explanation": "Standard Python type hints are ignored at runtime. They are meant for static type checkers (like mypy) and IDEs, not runtime enforcement.",
+    "topic": "type_hints",
+    "difficulty": "easy",
+    "is_gotcha": true
+  },
+  {
+    "question": "How do you write a type hint for a dictionary where the keys are strings and the values can be either integers or floats?",
+    "correct_answer": "Dict[str, Union[int, float]] (or dict[str, int | float] in 3.10+)",
+    "explanation": "You nest the Union inside the Dict type hint to specify that the value can be one of multiple types.",
+    "topic": "type_hints",
+    "difficulty": "medium",
+    "is_gotcha": false
+  },
+  {
+    "question": "What is `TypeVar` used for in Python?",
+    "correct_answer": "It is used to define Generics, allowing a function or class to operate on multiple types while maintaining relationships between arguments and return types.",
+    "explanation": "For example, if a function takes a list of type T and returns an item of type T, TypeVar('T') ensures the input and output types match.",
+    "topic": "type_hints",
+    "difficulty": "hard",
+    "is_gotcha": false
+  },
+  {
+    "question": "Identify the issue in this function signature: `def add_item(item: str, items: List[str] = []) -> List[str]:`",
+    "correct_answer": "It uses a mutable default argument (`[]`), which will persist across multiple function calls.",
+    "explanation": "While the type hint `List[str]` is correct, using `[]` as a default is a classic Python gotcha. It should be `items: Optional[List[str]] = None`.",
+    "topic": "type_hints",
+    "difficulty": "medium",
+    "is_gotcha": true
+  },
+  {
+    "question": "How has the syntax for `Union[int, str]` changed in Python 3.10?",
+    "correct_answer": "You can now use the bitwise OR operator: `int | str`.",
+    "explanation": "Python 3.10 introduced PEP 604, which allows the pipe operator `|` to replace `Union`, making the code much cleaner and easier to read.",
+    "topic": "type_hints",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "Write a function signature for `fetch_data` that takes a URL (string) and returns either a dictionary (string keys, any values) or None.",
+    "correct_answer": "def fetch_data(url: str) -> Optional[Dict[str, Any]]:",
+    "explanation": "The return type must wrap the dictionary in Optional to account for the None case, and `Any` (from typing) is used for arbitrary dictionary values.",
+    "topic": "type_hints",
+    "difficulty": "hard",
+    "is_gotcha": false
+  }
+]
+
+
+f-strings
+
+[
+  {
+    "question": "How do you format a float variable `pi = 3.14159` to show exactly two decimal places using an f-string?",
+    "correct_answer": "f\"{pi:.2f}\"",
+    "explanation": "The colon `:` starts the format specification, and `.2f` specifies a float rounded to two decimal places.",
+    "topic": "fstrings_advanced",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "What is the output of `x = 10; print(f\"{x=}\")` in Python 3.8+?",
+    "correct_answer": "x=10",
+    "explanation": "Adding an equals sign `=` after a variable name in an f-string is a debugging feature that prints both the expression text and its evaluated value.",
+    "topic": "fstrings_advanced",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "How do you include literal curly braces `{` or `}` inside an f-string?",
+    "correct_answer": "By double escaping them: `f\"{{ Hello }}\"`.",
+    "explanation": "Since single curly braces are used to evaluate expressions, you must use double curly braces `{{` or `}}` to render a literal brace in the output string.",
+    "topic": "fstrings_advanced",
+    "difficulty": "medium",
+    "is_gotcha": true
+  },
+  {
+    "question": "What happens if you try to access a dictionary key using the same quote type as the outer f-string, e.g., `f\"User: {data[\"name\"]}\"`?",
+    "correct_answer": "It raises a SyntaxError (in Python versions before 3.12).",
+    "explanation": "Prior to Python 3.12, you must use a different quote type inside the expression than the one used to enclose the f-string (e.g., `f\"User: {data['name']}\"`). Python 3.12 removes this restriction.",
+    "topic": "fstrings_advanced",
+    "difficulty": "medium",
+    "is_gotcha": true
+  },
+  {
+    "question": "How can you format the number `1000000` to include comma separators (i.e., `1,000,000`)?",
+    "correct_answer": "f\"{1000000:,}\"",
+    "explanation": "The `,` format specifier automatically inserts commas as thousands separators.",
+    "topic": "fstrings_advanced",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "How do you right-align a string `name = 'Bob'` within a column of 10 characters using f-strings?",
+    "correct_answer": "f\"{name:>10}\"",
+    "explanation": "The `>` character specifies right alignment, and `10` specifies the total width of the padded string.",
+    "topic": "fstrings_advanced",
+    "difficulty": "medium",
+    "is_gotcha": false
+  },
+  {
+    "question": "How do you pad the integer `id = 42` with leading zeros so it is exactly 5 characters long (e.g., `00042`)?",
+    "correct_answer": "f\"{id:05}\" or f\"{id:0>5}\"",
+    "explanation": "The `05` specifier tells Python to make the total width 5 and pad any extra space on the left with zeros.",
+    "topic": "fstrings_advanced",
+    "difficulty": "medium",
+    "is_gotcha": false
+  },
+  {
+    "question": "How do you combine the debugging `=` operator with a format specifier for a float `val = 2.5` to show 2 decimal places?",
+    "correct_answer": "f\"{val=:.2f}\"",
+    "explanation": "You place the `=` immediately after the variable name, followed by the `:` and the format specifier. Output will be `val=2.50`.",
+    "topic": "fstrings_advanced",
+    "difficulty": "hard",
+    "is_gotcha": false
+  },
+  {
+    "question": "Can you use a variable to define the padding width inside an f-string? If so, how?",
+    "correct_answer": "Yes, by nesting curly braces: `f\"{val:{width}}\"`.",
+    "explanation": "F-strings support nested expressions, allowing you to dynamically inject format specifiers or widths into the formatting logic.",
+    "topic": "fstrings_advanced",
+    "difficulty": "hard",
+    "is_gotcha": false
+  },
+  {
+    "question": "How do you format a standard `datetime.now()` object to output only the year and month as 'YYYY-MM' inside an f-string?",
+    "correct_answer": "f\"{now:%Y-%m}\"",
+    "explanation": "F-strings directly support `strftime` format codes for `datetime` objects after the colon.",
+    "topic": "fstrings_advanced",
+    "difficulty": "hard",
+    "is_gotcha": false
+  }
+]
+
+
+re module
+
+[
+  {
+    "question": "What is the primary difference between `re.match()` and `re.search()` in Python?",
+    "correct_answer": "`re.match()` only looks for a match at the very beginning of the string, while `re.search()` scans the entire string to find the first location where a match occurs.",
+    "explanation": "For example, `re.match(r'cat', 'dog cat')` returns None, but `re.search(r'cat', 'dog cat')` returns a match object.",
+    "topic": "regex",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "What will `re.findall(r'\\d+', 'User 123 has 45 apples')` return?",
+    "correct_answer": "['123', '45']",
+    "explanation": "`re.findall()` returns a list of all non-overlapping matches of the pattern in the string as string elements. `\\d+` matches one or more digits.",
+    "topic": "regex",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "Given `m = re.search(r'(\\d+)-(\\w+)', 'ID: 42-abc')`, what does `m.group(0)` evaluate to?",
+    "correct_answer": "'42-abc'",
+    "explanation": "In Python regex match objects, `group(0)` always returns the entire matched string, not the first parenthesized capture group. The first group ('42') is accessed via `m.group(1)`.",
+    "topic": "regex",
+    "difficulty": "medium",
+    "is_gotcha": true
+  },
+  {
+    "question": "How do you define a named capture group called 'year' that matches four digits?",
+    "correct_answer": "r'(?P<year>\\d{4})'",
+    "explanation": "The syntax `(?P<name>pattern)` creates a named group. It functions exactly like a normal capture group, but you can reference it by its name.",
+    "topic": "regex",
+    "difficulty": "medium",
+    "is_gotcha": false
+  },
+  {
+    "question": "If you have a match object `m` that contains named groups, how do you extract all named groups as a dictionary?",
+    "correct_answer": "Using the `m.groupdict()` method.",
+    "explanation": "`groupdict()` returns a dictionary containing all the named subgroups of the match, keyed by the subgroup name.",
+    "topic": "regex",
+    "difficulty": "medium",
+    "is_gotcha": false
+  },
+  {
+    "question": "What happens to the output of `re.findall()` if your regular expression contains one or more capture groups `()`?",
+    "correct_answer": "It returns a list of tuples instead of a list of strings.",
+    "explanation": "For example, `re.findall(r'(\\d+)-(\\w+)', '1-a 2-b')` returns `[('1', 'a'), ('2', 'b')]`. If there is exactly one group, it returns a list of strings matching that group.",
+    "topic": "regex",
+    "difficulty": "hard",
+    "is_gotcha": true
+  },
+  {
+    "question": "Why is it highly recommended to use raw strings (e.g., `r'\\n'`) when writing regular expressions in Python?",
+    "correct_answer": "To prevent Python's string literal parser from evaluating escape sequences before the `re` module sees them.",
+    "explanation": "For example, without the 'r' prefix, `\\b` is treated as a backspace character by Python. `r'\\b'` ensures the regex engine receives the literal slash and 'b' to interpret it as a word boundary.",
+    "topic": "regex",
+    "difficulty": "medium",
+    "is_gotcha": true
+  },
+  {
+    "question": "Which `re` module function would you use to replace all occurrences of multiple spaces with a single space?",
+    "correct_answer": "re.sub(r'\\s+', ' ', string)",
+    "explanation": "`re.sub(pattern, repl, string)` is used for regex-based string substitution.",
+    "topic": "regex",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "What is the return value of `re.search(r'abc', 'xyz')`?",
+    "correct_answer": "None",
+    "explanation": "If the pattern is not found in the target string, `match()`, `search()`, and `fullmatch()` return `None` rather than raising an exception or returning an empty string.",
+    "topic": "regex",
+    "difficulty": "easy",
+    "is_gotcha": false
+  },
+  {
+    "question": "How do you modify `re.search(r'error', text)` to match 'ERROR', 'Error', or 'error'?",
+    "correct_answer": "By passing the `re.IGNORECASE` (or `re.I`) flag: `re.search(r'error', text, re.IGNORECASE)`.",
+    "explanation": "Flags in the `re` module modify the behavior of the regex engine. `IGNORECASE` makes the pattern matching case-insensitive.",
+    "topic": "regex",
+    "difficulty": "easy",
+    "is_gotcha": false
+  }
+]
+
+

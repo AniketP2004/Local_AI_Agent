@@ -1,0 +1,278 @@
+Reference counting
+
+[
+{
+"question": "What is reference counting in Python?\n\n`python\nx = [1, 2, 3]\ny = x\n`",
+"correct_answer": "Reference counting is a memory-management technique where Python keeps track of how many references point to an object. When the reference count reaches zero, the object can be deallocated.",
+"explanation": "Initially, the list has one reference through x. After y = x, both x and y refer to the same list, so the object has additional references. When all references to the object are removed, its reference count can reach zero and Python can deallocate it.",
+"topic": "reference_counting",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What does sys.getrefcount() do?\n\n`python\nimport sys\n\nx = []\nprint(sys.getrefcount(x))\n`",
+"correct_answer": "sys.getrefcount(x) returns the number of references to the object passed to it, but the result is typically one higher than expected because passing x to getrefcount() temporarily creates an additional reference.",
+"explanation": "The function receives the object as an argument, creating a temporary reference during the call. Therefore, if you see a count of 2, it does not necessarily mean your program has two persistent references to the object.",
+"topic": "reference_counting",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What happens to an object when its reference count reaches zero?\n\n`python\nx = [10, 20]\ny = x\n\ndel x\ndel y\n`",
+"correct_answer": "When the last reference is removed and the object's reference count reaches zero, the object becomes eligible for immediate deallocation under CPython's reference-counting mechanism.",
+"explanation": "Both x and y initially reference the same list. del x removes one reference, while del y removes the final reference. In CPython, the list is then normally deallocated immediately. Other Python implementations may use different memory-management strategies.",
+"topic": "reference_counting",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "Does assigning another variable to an object create a new object?\n\n`python\nx = [1, 2, 3]\ny = x\n\nprint(x is y)\n`",
+"correct_answer": "No. y = x creates another reference to the same object; it does not create a copy. The expression x is y therefore evaluates to True.",
+"explanation": "Both variables point to the same list object. This increases the object's reference count but does not create another list. A separate object would require an operation such as x.copy() or another appropriate copying mechanism.",
+"topic": "reference_counting",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What happens to the reference count in this example?\n\n`python\nimport sys\n\nx = []\nprint(sys.getrefcount(x))\n\ny = x\nprint(sys.getrefcount(x))\n\ndel y\nprint(sys.getrefcount(x))\n`",
+"correct_answer": "Adding y = x increases the number of references to the list, and del y removes that reference. The exact numeric values returned by getrefcount() should not be relied upon because temporary references and implementation details affect the count.",
+"explanation": "The important concept is the change in references: y = x adds a reference and del y removes it. sys.getrefcount() itself temporarily references the object, which makes its displayed value higher than the persistent reference count.",
+"topic": "reference_counting",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "Can an object with a non-zero reference count still become part of a memory leak in CPython?\n\n`python\nclass Node:\n    pass\n\na = Node()\nb = Node()\na.other = b\nb.other = a\n\ndel a\ndel b\n`",
+"correct_answer": "Yes. The two objects can form a reference cycle, so their reference counts may remain non-zero even after the external references are deleted. CPython's cyclic garbage collector can detect and collect such unreachable cycles.",
+"explanation": "a references b and b references a. Deleting the external names does not necessarily reduce the internal references to zero. Reference counting alone cannot reclaim this cycle, so CPython's cyclic garbage collector is needed to identify unreachable cyclic objects.",
+"topic": "reference_counting",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What is the difference between del x and destroying an object?\n\n`python\nx = [1, 2, 3]\ny = x\n\ndel x\nprint(y)\n`",
+"correct_answer": "del x removes the name x's reference to the object; it does not necessarily destroy the object. The object remains alive because y still references it.",
+"explanation": "After del x, y continues to point to the list, so the list is still accessible. An object is deallocated only when it is no longer reachable through references, subject to the memory-management mechanism of the Python implementation.",
+"topic": "reference_counting",
+"difficulty": "easy",
+"is_gotcha": true
+},
+{
+"question": "Is reference counting the entire garbage-collection mechanism used by Python?\n\n`python\nimport gc\n\nprint(gc.isenabled())\n`",
+"correct_answer": "No. CPython primarily uses reference counting, but it also has a cyclic garbage collector to handle unreachable reference cycles.",
+"explanation": "Reference counting can immediately reclaim objects whose reference count reaches zero, but it cannot by itself detect cycles such as A referencing B while B references A. CPython's garbage collector supplements reference counting by detecting and collecting unreachable cycles.",
+"topic": "reference_counting",
+"difficulty": "medium",
+"is_gotcha": false
+}
+]
+
+
+Garbage collections
+
+[
+{
+"question": "What is Python's garbage collector, and why is it needed in addition to reference counting?\n\n`python\nimport gc\n\nprint(gc.isenabled())\n`",
+"correct_answer": "Python's garbage collector is a memory-management system that helps reclaim memory from objects that are no longer reachable. In CPython, it complements reference counting by detecting and collecting unreachable reference cycles.",
+"explanation": "Reference counting can immediately reclaim an object when its reference count reaches zero, but it cannot handle cycles where objects reference each other. The cyclic garbage collector addresses this limitation.",
+"topic": "garbage_collector",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is a reference cycle, and why can reference counting alone not collect it?\n\n`python\nclass Node:\n    pass\n\na = Node()\nb = Node()\na.other = b\nb.other = a\n\ndel a\ndel b\n`",
+"correct_answer": "A reference cycle occurs when objects reference each other directly or indirectly. Reference counting alone cannot reduce their reference counts to zero because the objects continue referencing one another.",
+"explanation": "After deleting a and b, the two Node objects can still reference each other. They are unreachable from the program but may have non-zero reference counts. Python's cyclic garbage collector can detect and reclaim such unreachable cycles.",
+"topic": "garbage_collector",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What does gc.collect() do?\n\n`python\nimport gc\n\ncollected = gc.collect()\nprint(collected)\n`",
+"correct_answer": "gc.collect() explicitly triggers a garbage-collection cycle and returns the number of unreachable objects that were collected.",
+"explanation": "Python normally runs garbage collection automatically based on its internal thresholds. gc.collect() allows a program to request collection explicitly. The returned number represents objects collected by the garbage collector, not simply the total number of objects currently in memory.",
+"topic": "garbage_collector",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What does gc.disable() do?\n\n`python\nimport gc\n\ngc.disable()\nprint(gc.isenabled())\n`",
+"correct_answer": "gc.disable() disables the automatic cyclic garbage collector for the current Python process.",
+"explanation": "Disabling the collector stops automatic cyclic garbage-collection runs. It does not disable reference counting in CPython, so objects whose reference counts reach zero can still be reclaimed. Automatic cyclic collection can later be restored with gc.enable().",
+"topic": "garbage_collector",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What is generational garbage collection in Python?\n\n`python\nimport gc\n\nprint(gc.get_threshold())\nprint(gc.get_count())\n`",
+"correct_answer": "Generational garbage collection organizes tracked objects into generations based on their age and collects younger generations more frequently than older ones.",
+"explanation": "The idea is based on the observation that many objects become unreachable soon after creation. Python's cyclic garbage collector therefore uses generations so that recently created objects can be checked more frequently while older objects are checked less often.",
+"topic": "garbage_collector",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "What does gc.get_count() return?\n\n`python\nimport gc\n\nprint(gc.get_count())\n`",
+"correct_answer": "gc.get_count() returns the current collection counts used by the garbage collector for its generations.",
+"explanation": "The values represent allocation-related counters maintained by the garbage collector and are used together with collection thresholds to determine when automatic collection should occur. The exact interpretation depends on the Python version's GC implementation.",
+"topic": "garbage_collector",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "What does gc.get_threshold() return, and how is it related to automatic collection?\n\n`python\nimport gc\n\nprint(gc.get_threshold())\n`",
+"correct_answer": "gc.get_threshold() returns the garbage collector's current collection thresholds. These thresholds help determine when automatic garbage collection should be triggered.",
+"explanation": "The thresholds control when the cyclic garbage collector runs based on its internal counters. They can be inspected and, when appropriate, changed using gc.set_threshold(). The exact number and meaning of thresholds can vary across Python versions.",
+"topic": "garbage_collector",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "Are all Python objects tracked by the cyclic garbage collector?\n\n`python\nimport gc\n\nx = [1, 2, 3]\nprint(gc.is_tracked(x))\n`",
+"correct_answer": "No. The cyclic garbage collector tracks objects that may participate in reference cycles; not every object necessarily needs to be tracked.",
+"explanation": "The gc module provides gc.is_tracked() to inspect whether an object is currently tracked by the cyclic garbage collector. Some simple objects that cannot participate in relevant reference cycles may not need GC tracking.",
+"topic": "garbage_collector",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What happens if you call gc.collect() after deleting objects that have no reference cycles?\n\n`python\nimport gc\n\nx = [1, 2, 3]\ndel x\n\nprint(gc.collect())\n`",
+"correct_answer": "The object may already have been reclaimed by reference counting in CPython, so gc.collect() may report that it collected zero additional objects.",
+"explanation": "Reference counting and cyclic garbage collection are separate mechanisms in CPython. An ordinary object whose reference count reaches zero can be reclaimed immediately, so there may be nothing for the cyclic collector to collect.",
+"topic": "garbage_collector",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "Can gc.collect() guarantee that every unreachable object in Python is immediately destroyed?\n\n`python\nimport gc\n\nn = gc.collect()\nprint(n)\n`",
+"correct_answer": "No. gc.collect() requests garbage collection, but it does not mean every object in every Python implementation is immediately destroyed. Its behavior is tied to the implementation's memory-management mechanisms, and objects with finalizers or other special conditions can complicate collection.",
+"explanation": "For CPython, reference counting handles many objects immediately, while cyclic GC handles unreachable cycles. Python also supports other implementations with different memory-management strategies. Therefore, code should generally not depend on exact garbage-collection timing for correctness.",
+"topic": "garbage_collector",
+"difficulty": "medium",
+"is_gotcha": true
+}
+]
+
+
+slots
+
+[
+{
+"question": "What is **slots** in Python?\n\n`python\nclass Person:\n    __slots__ = ('name', 'age')\n\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n`",
+"correct_answer": "**slots** is a class attribute that declares a fixed set of instance attributes and can prevent instances from having a normal **dict**.",
+"explanation": "Normally, Python objects use an instance **dict** to store attributes dynamically. When **slots** is defined, Python can use a more compact storage mechanism for the declared attributes, which can significantly reduce memory usage when creating many instances.",
+"topic": "slots",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "How does **slots** help optimize memory usage?\n\n`python\nclass Point:\n    __slots__ = ('x', 'y')\n\np = Point()\np.x = 10\np.y = 20\n`",
+"correct_answer": "**slots** can reduce per-instance memory usage by avoiding the normal instance **dict** for the slotted attributes.",
+"explanation": "A normal Python instance commonly has a dictionary for storing arbitrary instance attributes. A slotted class can store declared attributes more compactly. This is particularly useful when a program creates a very large number of instances.",
+"topic": "slots",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "What happens if you try to assign an undeclared attribute to a class using **slots**?\n\n`python\nclass Person:\n    __slots__ = ('name',)\n\np = Person()\np.name = 'John'\np.age = 25\n`",
+"correct_answer": "An AttributeError is raised when assigning p.age because age is not included in **slots** and the class does not have an instance **dict**.",
+"explanation": "With **slots** = ('name',), instances are restricted to the declared attribute name unless a **dict** is explicitly included or inherited in a way that provides one. This restriction is one of the trade-offs of using **slots**.",
+"topic": "slots",
+"difficulty": "easy",
+"is_gotcha": true
+},
+{
+"question": "Does **slots** completely prevent the use of **dict**?\n\n`python\nclass Person:\n    __slots__ = ('name', '__dict__')\n\np = Person()\np.name = 'John'\np.age = 25\n\nprint(p.__dict__)\n`",
+"correct_answer": "No. If '**dict**' is explicitly included in **slots**, instances can have a normal instance dictionary and can store additional dynamic attributes.",
+"explanation": "Adding '**dict**' to **slots** allows arbitrary instance attributes again. However, this also reduces or eliminates one of the main memory-saving benefits of using slots.",
+"topic": "slots",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "Can a class using **slots** have methods?\n\n`python\nclass Person:\n    __slots__ = ('name',)\n\n    def greet(self):\n        return f'Hello {self.name}'\n`",
+"correct_answer": "Yes. **slots** only controls instance attribute storage; it does not prevent the class from having methods.",
+"explanation": "Methods are attributes of the class, not normally stored separately in each instance. A slotted class can have regular methods, class methods, static methods, properties, and other normal class features.",
+"topic": "slots",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is one important trade-off of using **slots**?\n\n`python\nclass User:\n    __slots__ = ('name', 'email')\n\nu = User()\nu.name = 'Alice'\nu.email = 'alice@example.com'\n`",
+"correct_answer": "The main trade-off is reduced flexibility: instances cannot normally have arbitrary new attributes, and features that rely on an instance **dict** may not work unless **dict** is explicitly provided.",
+"explanation": "**slots** can save memory, but it makes the class more restrictive. It can also complicate some patterns involving dynamic attributes, multiple inheritance, or tools and libraries that expect instances to have **dict**. Therefore, it is most useful when the set of instance attributes is known and stable.",
+"topic": "slots",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "What happens to **slots** when inheritance is involved?\n\n`python\nclass Animal:\n    __slots__ = ('name',)\n\nclass Dog(Animal):\n    pass\n\nd = Dog()\nd.name = 'Buddy'\nd.age = 3\n`",
+"correct_answer": "A subclass that does not define **slots** gets an instance **dict**, so d.age can normally be assigned.",
+"explanation": "Defining **slots** in a parent class does not automatically make every subclass slotted. If Dog does not define **slots**, its instances normally have a **dict**, allowing additional attributes. To keep the subclass slotted, it can define its own **slots**, for example **slots** = ('age',).",
+"topic": "slots",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "When is using **slots** most beneficial, and when might it not be worth using?\n\n`python\nclass Pixel:\n    __slots__ = ('x', 'y', 'value')\n\npixels = [Pixel() for _ in range(1_000_000)]\n`",
+"correct_answer": "**slots** is most beneficial when creating many instances with a fixed, small set of attributes. It may not be worth using for a small number of objects or classes that need dynamic attributes and maximum flexibility.",
+"explanation": "The memory savings are primarily per instance, so they become significant when many objects are created. However, **slots** adds restrictions and can make some designs less flexible. It should therefore be used when its memory and structural benefits justify those trade-offs rather than as a universal optimization.",
+"topic": "slots",
+"difficulty": "medium",
+"is_gotcha": false
+}
+]
+
+
+Weak references
+
+[
+{
+"question": "What is a weak reference in Python, and how is it different from a normal reference?\n\n`python\nimport weakref\n\nclass User:\n    pass\n\nuser = User()\nref = weakref.ref(user)\n\nprint(ref())\n`",
+"correct_answer": "A weak reference refers to an object without keeping that object alive. A normal reference increases the object's reference count, while a weak reference does not prevent the object from being garbage-collected.",
+"explanation": "ref is a weak reference to user. Calling ref() returns the original object while it is still alive. If all strong references to user are removed, the object can be collected and ref() will then return None.",
+"topic": "weakref",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What happens when the only strong reference to an object is deleted?\n\n`python\nimport weakref\n\nclass User:\n    pass\n\nuser = User()\nref = weakref.ref(user)\n\ndel user\n\nprint(ref())\n`",
+"correct_answer": "ref() returns None because the User object is no longer strongly referenced and can be garbage-collected.",
+"explanation": "The weak reference does not keep the User object alive. After del user removes the strong reference, the object becomes eligible for destruction. In CPython, an object with no remaining references is typically destroyed immediately, so ref() normally returns None.",
+"topic": "weakref",
+"difficulty": "easy",
+"is_gotcha": true
+},
+{
+"question": "Why can weak references be useful for implementing caches?\n\n`python\nimport weakref\n\ncache = weakref.WeakValueDictionary()\n\nclass Data:\n    pass\n\nobj = Data()\ncache['item'] = obj\n\nprint(cache['item'] is obj)\n`",
+"correct_answer": "A weak-reference cache does not keep cached objects alive. If there are no other strong references to an object, it can be garbage-collected and automatically removed from the cache.",
+"explanation": "WeakValueDictionary stores values using weak references. This allows a cache to reuse existing objects without forcing them to remain in memory indefinitely. It can therefore help reduce memory usage when cached objects are no longer needed elsewhere.",
+"topic": "weakref",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "How can weak references help prevent memory leaks in an observer pattern?\n\n`python\nimport weakref\n\nclass Subject:\n    def __init__(self):\n        self.observers = weakref.WeakSet()\n\n    def add_observer(self, observer):\n        self.observers.add(observer)\n\nclass Observer:\n    pass\n\nsubject = Subject()\nobserver = Observer()\nsubject.add_observer(observer)\n`",
+"correct_answer": "Using a WeakSet for observers allows observer objects to be garbage-collected when there are no other strong references to them, without requiring the subject to explicitly remove them.",
+"explanation": "A normal collection held by Subject could keep observers alive accidentally, especially if observers are registered for a long time. WeakSet stores weak references, so it does not prevent registered observers from being collected. This can reduce the risk of retaining objects unnecessarily.",
+"topic": "weakref",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "Can every Python object be weakly referenced?\n\n`python\nimport weakref\n\nx = 10\nref = weakref.ref(x)\n`",
+"correct_answer": "No. Not every Python object supports weak references. Attempting to create a weak reference to an unsupported object, such as a typical int instance, raises TypeError.",
+"explanation": "Weak-reference support depends on the object's type. Many user-defined class instances support weak references, while several built-in immutable types such as int and str generally do not. Classes using **slots** also need to include '**weakref**' in their slots if their instances should support weak references.",
+"topic": "weakref",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What is the relationship between **slots** and weak references?\n\n`python\nimport weakref\n\nclass User:\n    __slots__ = ('name',)\n\nuser = User()\nuser.name = 'Alice'\n\nref = weakref.ref(user)\n`",
+"correct_answer": "This can raise TypeError because a class using **slots** does not automatically provide weak-reference support. To allow weak references, '**weakref**' must be included in **slots**.",
+"explanation": "The class should be defined as `__slots__ = ('name', '__weakref__')` if its instances need to support weak references. This is an important interaction between memory optimization with **slots** and weak-reference functionality.",
+"topic": "weakref",
+"difficulty": "medium",
+"is_gotcha": true
+}
+]

@@ -1,0 +1,258 @@
+pytest basics
+
+[
+{
+"question": "What is pytest and why is it used in Python?",
+"correct_answer": "pytest is a Python testing framework used to write and run automated tests. It provides simple test syntax, fixtures, parametrization, and useful failure reports.",
+"explanation": "pytest allows developers to test individual functions and larger parts of an application. A basic test function usually starts with `test_` and uses Python's built-in `assert` statement.",
+"topic": "pytest",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "How do you write a basic test using pytest?\n\n`python\ndef add(a, b):\n    return a + b\n\ndef test_add():\n    assert add(2, 3) == 5\n`",
+"correct_answer": "Define a test function whose name starts with `test_` and use an assert statement to verify the expected result.",
+"explanation": "pytest automatically discovers functions beginning with `test_`. If the assertion is true, the test passes; if it is false, pytest reports the test as failed.",
+"topic": "pytest",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "How is assert used in pytest?\n\n`python\ndef test_login():\n    status = True\n    assert status is True\n`",
+"correct_answer": "assert checks whether a condition is true. If the condition is false, pytest marks the test as failed and provides a useful failure message.",
+"explanation": "pytest uses Python's normal `assert` statement rather than requiring a separate assertion method. You can compare values, types, collections, and boolean conditions directly.",
+"topic": "pytest",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is a pytest fixture?\n\n`python\nimport pytest\n\n@pytest.fixture\ndef user():\n    return {\"name\": \"Alice\"}\n\ndef test_user(user):\n    assert user[\"name\"] == \"Alice\"\n`",
+"correct_answer": "A pytest fixture is a reusable function that provides setup data or resources to test functions.",
+"explanation": "The `@pytest.fixture` decorator marks user() as a fixture. A test can request the fixture simply by using its name as a parameter. pytest automatically calls the fixture and passes its returned value to the test.",
+"topic": "pytest",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What happens if a pytest fixture returns a value and the test accepts the fixture name as an argument?\n\n`python\nimport pytest\n\n@pytest.fixture\ndef number():\n    return 10\n\ndef test_number(number):\n    assert number == 10\n`",
+"correct_answer": "pytest automatically executes the fixture and passes its returned value to the test function.",
+"explanation": "The parameter name `number` tells pytest that the test requires the fixture named `number`. pytest resolves the fixture before running the test and injects the returned value.",
+"topic": "pytest",
+"difficulty": "easy",
+"is_gotcha": true
+},
+{
+"question": "What is pytest.mark.parametrize used for?\n\n`python\nimport pytest\n\n@pytest.mark.parametrize(\"a,b,result\", [\n    (1, 2, 3),\n    (2, 3, 5),\n    (5, 5, 10)\n])\ndef test_add(a, b, result):\n    assert a + b == result\n`",
+"correct_answer": "pytest.mark.parametrize runs the same test multiple times with different input values.",
+"explanation": "Instead of writing three separate test functions, parametrization creates multiple test cases from one test function. Each tuple supplies values for `a`, `b`, and `result`.",
+"topic": "pytest",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What will happen when one parametrized test case fails?\n\n`python\nimport pytest\n\n@pytest.mark.parametrize(\"x\", [1, 2, 3])\ndef test_positive(x):\n    assert x > 1\n`",
+"correct_answer": "pytest treats each parameter combination as a separate test case, so the case with x=1 fails while the cases with x=2 and x=3 pass.",
+"explanation": "Parametrization does not make the entire set one indivisible test. Each generated test case is reported separately, making it easy to identify which input caused the failure.",
+"topic": "pytest",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "How does pytest compare with unittest?\n\n`python\n# pytest\n\ndef test_add():\n    assert 2 + 3 == 5\n\n# unittest\nimport unittest\n\nclass TestAdd(unittest.TestCase):\n    def test_add(self):\n        self.assertEqual(2 + 3, 5)\n`",
+"correct_answer": "pytest generally provides a simpler syntax using normal test functions and assert statements, while unittest uses classes derived from unittest.TestCase and methods such as assertEqual().",
+"explanation": "Both frameworks support automated testing, setup and teardown, test organization, and assertions. pytest is often preferred for its concise syntax, fixtures, parametrization, and rich plugin ecosystem, while unittest is part of Python's standard library.",
+"topic": "pytest",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "Does pytest require test classes for every test?\n\n`python\ndef test_sum():\n    assert sum([1, 2, 3]) == 6\n\ndef test_length():\n    assert len(\"Python\") == 6\n`",
+"correct_answer": "No. pytest can use ordinary test functions without defining test classes.",
+"explanation": "This is one of the differences from the common unittest style. pytest automatically discovers appropriately named test functions, so simple tests do not require a TestCase class.",
+"topic": "pytest",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "Which assertion is correct for comparing two lists in pytest?\n\n`python\ndef test_items():\n    actual = [1, 2, 3]\n    expected = [1, 2, 3]\n    assert actual == expected\n`",
+"correct_answer": "The assertion `assert actual == expected` is correct and passes because the two lists contain the same values in the same order.",
+"explanation": "pytest uses Python's normal equality operator with assert. Unlike identity comparison using `is`, `==` checks whether the values are equal. pytest also provides detailed failure output when collection comparisons do not match.",
+"topic": "pytest",
+"difficulty": "easy",
+"is_gotcha": true
+}
+]
+
+Mocking
+
+[
+{
+"question": "What is mocking in Python, and why is unittest.mock used?\n\n`python\nfrom unittest.mock import Mock\n\napi = Mock()\napi.get_user.return_value = {\"name\": \"Alice\"}\n\nprint(api.get_user())\n`",
+"correct_answer": "Mocking means replacing a real dependency with a fake object during testing. unittest.mock provides tools such as Mock and patch to isolate the code being tested.",
+"explanation": "Mocking is useful when the real dependency is slow, external, unavailable, or has side effects. Here, api.get_user() does not call a real API; the Mock returns the predefined dictionary.",
+"topic": "mocking",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is a Mock object in unittest.mock?\n\n`python\nfrom unittest.mock import Mock\n\nmock = Mock()\nmock.calculate.return_value = 100\n\nresult = mock.calculate(10, 20)\nprint(result)\n`",
+"correct_answer": "A Mock object is a configurable fake object that can stand in for a real object or dependency during testing.",
+"explanation": "Mocks can create attributes and methods dynamically, define return values, record calls, and simulate different behaviors. In this example, calculate() returns 100 regardless of the arguments passed.",
+"topic": "mocking",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is return_value used for in Mock?\n\n`python\nfrom unittest.mock import Mock\n\nmock = Mock()\nmock.get_data.return_value = \"success\"\n\nprint(mock.get_data())\nprint(mock.get_data())\n`",
+"correct_answer": "return_value specifies the value that a mocked method or callable should return whenever it is called.",
+"explanation": "Both calls to get_data() return `success` because the mock's return_value is fixed. This is useful when you want predictable behavior from a dependency during a test.",
+"topic": "mocking",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is side_effect used for in unittest.mock?\n\n`python\nfrom unittest.mock import Mock\n\nmock = Mock()\nmock.get_number.side_effect = [10, 20, 30]\n\nprint(mock.get_number())\nprint(mock.get_number())\nprint(mock.get_number())\n`",
+"correct_answer": "side_effect can provide different results for successive calls, execute a function, or raise an exception.",
+"explanation": "When side_effect is an iterable, each call consumes the next value. Therefore, the three calls return 10, 20, and 30 respectively. It is useful for simulating changing or exceptional behavior.",
+"topic": "mocking",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is the difference between return_value and side_effect?\n\n`python\nfrom unittest.mock import Mock\n\nmock1 = Mock(return_value=10)\nmock2 = Mock(side_effect=[10, 20])\n\nprint(mock1())\nprint(mock1())\nprint(mock2())\nprint(mock2())\n`",
+"correct_answer": "return_value normally returns the same configured value on every call, while side_effect can produce different values, call a function, or raise exceptions.",
+"explanation": "mock1 returns 10 every time. mock2 returns 10 on the first call and 20 on the second because side_effect is an iterable. side_effect is therefore more flexible for simulating multiple behaviors.",
+"topic": "mocking",
+"difficulty": "easy",
+"is_gotcha": true
+},
+{
+"question": "How can side_effect be used to make a mock raise an exception?\n\n`python\nfrom unittest.mock import Mock\n\nmock = Mock()\nmock.connect.side_effect = ConnectionError(\"Server unavailable\")\n\nmock.connect()\n`",
+"correct_answer": "If side_effect is set to an exception, calling the mock raises that exception.",
+"explanation": "This allows a test to simulate failure scenarios without actually causing a real connection failure. In this example, connect() raises ConnectionError when called.",
+"topic": "mocking",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What does patch do in unittest.mock?\n\n`python\nfrom unittest.mock import patch\n\n@patch(\"myapp.requests.get\")\ndef test_fetch(mock_get):\n    mock_get.return_value.status_code = 200\n    # test code here\n`",
+"correct_answer": "patch temporarily replaces a specified object with a mock during a test and restores the original object afterward.",
+"explanation": "patch is commonly used to replace external dependencies such as API calls, database functions, or file operations. The mock is passed into the decorated test function, and the original object is restored after the test.",
+"topic": "mocking",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "What is an important rule when using patch: should you patch where a function is defined or where it is used?\n\n`python\n# service.py\nfrom api import fetch_data\n\ndef get_result():\n    return fetch_data()\n\n# test_service.py\nfrom unittest.mock import patch\n\n@patch(\"service.fetch_data\")\ndef test_get_result(mock_fetch):\n    mock_fetch.return_value = \"mocked\"\n    assert service.get_result() == \"mocked\"\n`",
+"correct_answer": "You generally patch the name where the code under test looks it up, which in this example is service.fetch_data.",
+"explanation": "When service.py executes `from api import fetch_data`, it creates a local name `service.fetch_data`. Patching api.fetch_data afterward does not necessarily replace that already-imported reference. A common mocking mistake is patching the definition location instead of the lookup location.",
+"topic": "mocking",
+"difficulty": "medium",
+"is_gotcha": true
+}
+]
+
+Virtual environment
+[
+{
+"question": "What is a virtual environment in Python, and why is it used?\n\n`bash\npython -m venv myenv\n`",
+"correct_answer": "A virtual environment is an isolated Python environment that has its own packages and dependencies. It is used to prevent dependency conflicts between different projects.",
+"explanation": "For example, one project may require Django 4 while another requires Django 5. Installing both globally can cause conflicts. A virtual environment allows each project to maintain its own compatible package versions.",
+"topic": "venv_deps",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "How do you create and activate a virtual environment on different operating systems?\n\n`bash\npython -m venv venv\n\n# Windows\nvenv\\Scripts\\activate\n\n# Linux/macOS\nsource venv/bin/activate\n`",
+"correct_answer": "Use `python -m venv venv` to create the environment. On Windows, activate it with `venv\\Scripts\\activate`, and on Linux/macOS, use `source venv/bin/activate`.",
+"explanation": "The `venv` module is included with modern Python installations. Once activated, packages installed with pip are installed into that virtual environment rather than the system Python environment.",
+"topic": "venv_deps",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is requirements.txt used for in a Python project?\n\n`text\nrequests==2.32.3\npytest==8.3.2\n`\n\n`bash\npip install -r requirements.txt\n`",
+"correct_answer": "requirements.txt lists the Python packages and, optionally, their versions that a project depends on.",
+"explanation": "Another developer can install the listed dependencies using `pip install -r requirements.txt`. Pinning versions, such as `requests==2.32.3`, helps make the project environment more reproducible.",
+"topic": "venv_deps",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "How can you generate a requirements.txt file from the packages installed in the current environment?\n\n`bash\npip freeze > requirements.txt\n`",
+"correct_answer": "`pip freeze > requirements.txt` writes the installed packages and their versions to requirements.txt.",
+"explanation": "`pip freeze` displays installed packages in a requirements-style format. Redirecting the output to a file saves that dependency list so it can be recreated later with `pip install -r requirements.txt`.",
+"topic": "venv_deps",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "Why is it generally better to create a virtual environment before installing project dependencies?\n\n`bash\npython -m venv venv\nvenv\\Scripts\\activate\npip install requests\n`",
+"correct_answer": "It keeps the project's dependencies isolated from the system Python installation and from dependencies of other projects.",
+"explanation": "Without a virtual environment, installing or upgrading a package globally can affect unrelated projects. With an isolated environment, each project can use its own dependency versions without interfering with other projects.",
+"topic": "venv_deps",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "Is requirements.txt itself a virtual environment?\n\n`text\n# requirements.txt\nflask==3.0.3\nrequests==2.32.3\n`",
+"correct_answer": "No. requirements.txt is only a dependency specification file; it does not create or isolate an environment.",
+"explanation": "A virtual environment provides the isolated Python environment, while requirements.txt describes which packages should be installed into that environment. A common workflow is to create a venv, activate it, and then run `pip install -r requirements.txt`.",
+"topic": "venv_deps",
+"difficulty": "easy",
+"is_gotcha": true
+}
+]
+
+argparse
+
+[
+{
+"question": "What is sys.argv in Python, and how is it used to access command-line arguments?\n\n`python\nimport sys\n\nprint(sys.argv)\n`\n\nIf the script is run as `python app.py hello 123`, what will sys.argv contain?",
+"correct_answer": "sys.argv is a list containing the command-line arguments passed to a Python script. The first element is the script name, so the result is approximately `['app.py', 'hello', '123']`.",
+"explanation": "sys.argv provides raw command-line arguments as strings. `sys.argv[0]` is normally the script name, while `sys.argv[1]` and later elements contain the arguments supplied by the user.",
+"topic": "cli_args",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is argparse used for in Python?\n\n`python\nimport argparse\n\nparser = argparse.ArgumentParser()\nparser.add_argument(\"name\")\nargs = parser.parse_args()\n\nprint(args.name)\n`",
+"correct_answer": "argparse is a standard-library module used to parse and validate command-line arguments in a structured way.",
+"explanation": "argparse allows you to define positional arguments, optional arguments, types, defaults, help messages, and validation rules. It also automatically generates useful usage and error messages.",
+"topic": "cli_args",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is the difference between sys.argv and argparse?\n\n`python\n# sys.argv\nimport sys\nname = sys.argv[1]\n\n# argparse\nimport argparse\nparser = argparse.ArgumentParser()\nparser.add_argument(\"name\")\nargs = parser.parse_args()\nname = args.name\n`",
+"correct_answer": "sys.argv gives raw command-line arguments as strings, while argparse provides a structured way to define, parse, convert, validate, and document command-line arguments.",
+"explanation": "For very simple scripts, sys.argv may be sufficient. argparse is preferable when a program has multiple arguments, optional flags, type conversion, defaults, or user-friendly command-line help.",
+"topic": "cli_args",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "How can argparse automatically convert a command-line argument to an integer?\n\n`python\nimport argparse\n\nparser = argparse.ArgumentParser()\nparser.add_argument(\"age\", type=int)\nargs = parser.parse_args()\n\nprint(args.age + 1)\n`",
+"correct_answer": "Pass `type=int` to add_argument(). argparse converts the supplied argument from a string to an integer.",
+"explanation": "Command-line arguments are initially text. With `type=int`, argparse performs the conversion and reports an appropriate error if the user supplies a value that cannot be converted to an integer.",
+"topic": "cli_args",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is the difference between a positional argument and an optional argument in argparse?\n\n`python\nimport argparse\n\nparser = argparse.ArgumentParser()\nparser.add_argument(\"filename\")\nparser.add_argument(\"--verbose\", action=\"store_true\")\nargs = parser.parse_args()\n`",
+"correct_answer": "A positional argument is identified by its position, while an optional argument is normally specified using a flag such as `--verbose`.",
+"explanation": "For example, `python app.py data.txt --verbose` supplies `data.txt` as the required positional argument and enables the optional verbose flag. `action=\"store_true\"` makes verbose become True when the flag is provided and False otherwise.",
+"topic": "cli_args",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What happens if a required positional argument is missing when using argparse?\n\n`python\nimport argparse\n\nparser = argparse.ArgumentParser()\nparser.add_argument(\"filename\")\nargs = parser.parse_args()\n`\n\nSuppose the program is run as `python app.py`.",
+"correct_answer": "argparse reports an error indicating that the required positional argument is missing and terminates argument parsing.",
+"explanation": "Positional arguments are required by default. argparse also displays usage information, making it clearer to the user how the program should be invoked. This is one advantage over manually accessing `sys.argv[1]`, which could instead result in an IndexError.",
+"topic": "cli_args",
+"difficulty": "medium",
+"is_gotcha": true
+}
+]

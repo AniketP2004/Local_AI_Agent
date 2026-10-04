@@ -1,0 +1,137 @@
+send() throw() close()
+
+[
+{
+"question": "What is the purpose of the send() method in a Python generator?\n\n`python\ndef generator():\n    value = yield \"Ready\"\n    yield value * 2\n\ng = generator()\nprint(next(g))\nprint(g.send(10))\n`",
+"correct_answer": "send() resumes a suspended generator and sends a value into the generator at the point where it is paused at yield.",
+"explanation": "The first next(g) starts the generator and pauses at `yield \"Ready\"`. Calling g.send(10) resumes execution, and the expression `yield \"Ready\"` evaluates to 10, so value becomes 10. The generator then yields 20.",
+"topic": "generator_methods",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What happens if you call send() with a non-None value before starting a generator?\n\n`python\ndef numbers():\n    x = yield 10\n    yield x\n\ng = numbers()\ng.send(5)\n`",
+"correct_answer": "Python raises a TypeError because a non-None value cannot be sent to a generator before its first yield has been reached.",
+"explanation": "A newly created generator has not started executing yet, so there is no suspended yield expression into which the value can be sent. The correct way to start it is `next(g)` or `g.send(None)`. After the first yield, a value can be sent using send(value).",
+"topic": "generator_methods",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What does the throw() method do in a generator?\n\n`python\ndef worker():\n    try:\n        yield \"Working\"\n    except ValueError:\n        yield \"Handled\"\n\ng = worker()\nprint(next(g))\nprint(g.throw(ValueError))\n`",
+"correct_answer": "throw() raises an exception at the point where the generator is currently suspended.",
+"explanation": "The generator is paused at the first yield. `g.throw(ValueError)` causes ValueError to be raised inside the generator at that suspension point. The except block catches it and yields `Handled`.",
+"topic": "generator_methods",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "What happens when throw() sends an exception that the generator does not handle?\n\n`python\ndef numbers():\n    yield 1\n    yield 2\n\ng = numbers()\nnext(g)\ng.throw(ValueError(\"Invalid value\"))\n`",
+"correct_answer": "The ValueError propagates out of the generator because there is no matching exception handler inside the generator.",
+"explanation": "The generator is suspended after yielding 1. throw() raises ValueError at that suspension point. Since the generator has no try/except block that handles the exception, the exception propagates to the caller and the generator terminates.",
+"topic": "generator_methods",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "What does the close() method do to a generator?\n\n`python\ndef generator():\n    try:\n        yield 1\n        yield 2\n    finally:\n        print(\"Cleanup\")\n\ng = generator()\nprint(next(g))\ng.close()\n`",
+"correct_answer": "close() requests that the generator stop execution by raising GeneratorExit inside the generator. The finally block executes, so "Cleanup" is printed.",
+"explanation": "close() is used to terminate a suspended generator. Python raises GeneratorExit at the generator's suspension point, allowing finally blocks to perform cleanup before the generator finishes.",
+"topic": "generator_methods",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "What happens if you call next() on a generator after close()?\n\n`python\ndef generator():\n    yield 1\n    yield 2\n\ng = generator()\nprint(next(g))\ng.close()\nprint(next(g))\n`",
+"correct_answer": "The final next(g) raises StopIteration because the generator has been closed.",
+"explanation": "After close(), the generator is terminated and cannot continue producing values. Attempting to resume it with next() results in StopIteration, just like an exhausted generator.",
+"topic": "generator_methods",
+"difficulty": "easy",
+"is_gotcha": true
+},
+{
+"question": "What is the difference between send(), throw(), and close()?\n\n`python\ng = some_generator()\n\nnext(g)\ng.send(10)\ng.throw(ValueError)\ng.close()\n`",
+"correct_answer": "send() resumes the generator and provides a value to its suspended yield expression, throw() raises an exception inside the suspended generator, and close() terminates the generator by raising GeneratorExit inside it.",
+"explanation": "All three methods control a suspended generator, but they have different purposes. send() provides data, throw() provides an exception, and close() requests termination and cleanup.",
+"topic": "generator_methods",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What will this code print?\n\n`python\ndef counter():\n    try:\n        while True:\n            value = yield 0\n            print(\"Received:\", value)\n    except GeneratorExit:\n        print(\"Generator closed\")\n\ng = counter()\nprint(next(g))\ng.send(10)\ng.close()\n`",
+"correct_answer": "It prints:\n0\nReceived: 10\nGenerator closed",
+"explanation": "next(g) starts the generator and reaches `yield 0`. send(10) resumes it, causing the yield expression to evaluate to 10, so the generator prints `Received: 10` and pauses at the next yield. close() raises GeneratorExit inside the generator, which is caught by the except block.",
+"topic": "generator_methods",
+"difficulty": "medium",
+"is_gotcha": false
+}
+]
+
+yield from 
+[
+{
+"question": "What is yield from in Python?\n\n`python\ndef numbers():\n    yield from [1, 2, 3]\n\nfor n in numbers():\n    print(n)\n`",
+"correct_answer": "yield from delegates iteration to another iterable or generator, yielding each value produced by that iterable.",
+"explanation": "In this example, yield from [1, 2, 3] produces 1, 2, and 3 one by one. It is a convenient way to delegate yielding values instead of writing a loop with `for item in iterable: yield item`.",
+"topic": "yield_from",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What is the difference between yield iterable and yield from iterable?\n\n`python\ndef a():\n    yield [1, 2, 3]\n\ndef b():\n    yield from [1, 2, 3]\n\nprint(list(a()))\nprint(list(b()))\n`",
+"correct_answer": "yield [1, 2, 3] yields the entire list as one value, while yield from [1, 2, 3] delegates to the list and yields 1, 2, and 3 separately.",
+"explanation": "The output of list(a()) is `[[1, 2, 3]]`, whereas list(b()) is `[1, 2, 3]`. This distinction is important when using yield from for generator delegation.",
+"topic": "yield_from",
+"difficulty": "easy",
+"is_gotcha": true
+},
+{
+"question": "How can yield from be used to delegate to another generator?\n\n`python\ndef child():\n    yield 1\n    yield 2\n    yield 3\n\ndef parent():\n    yield from child()\n\nprint(list(parent()))\n`",
+"correct_answer": "yield from child() makes parent delegate its yielding operation to the child generator, producing 1, 2, and 3.",
+"explanation": "The parent generator does not need to manually iterate over child(). The statement `yield from child()` forwards the values produced by child() to the caller of parent(). This is called generator delegation.",
+"topic": "yield_from",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What will this code print?\n\n`python\ndef child():\n    yield 10\n    yield 20\n\ndef parent():\n    yield 5\n    yield from child()\n    yield 30\n\nprint(list(parent()))\n`",
+"correct_answer": "[5, 10, 20, 30]",
+"explanation": "parent first yields 5. It then delegates to child(), which yields 10 and 20. Once child() finishes, control returns to parent(), which yields 30.",
+"topic": "yield_from",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "Can yield from delegate to a normal iterable such as a list or string?\n\n`python\ndef letters():\n    yield from \"ABC\"\n\nprint(list(letters()))\n`",
+"correct_answer": "Yes. yield from can delegate to any iterable, not only to generators.",
+"explanation": "Strings, lists, tuples, sets, and other iterable objects can be used with yield from. Here, the generator yields A, B, and C individually, so the result is `['A', 'B', 'C']`.",
+"topic": "yield_from",
+"difficulty": "easy",
+"is_gotcha": false
+},
+{
+"question": "What value can yield from receive when the delegated generator returns a value?\n\n`python\ndef child():\n    yield 1\n    return 100\n\ndef parent():\n    result = yield from child()\n    yield result\n\nprint(list(parent()))\n`",
+"correct_answer": "[1, 100]",
+"explanation": "The child generator first yields 1. When it finishes with `return 100`, that value becomes the result of the `yield from child()` expression. Therefore, result becomes 100 and parent then yields 100.",
+"topic": "yield_from",
+"difficulty": "medium",
+"is_gotcha": true
+},
+{
+"question": "Why is yield from generally cleaner than manually forwarding values from another generator?\n\n`python\ndef child():\n    yield 1\n    yield 2\n    yield 3\n\ndef parent():\n    for value in child():\n        yield value\n`",
+"correct_answer": "The loop can be replaced with `yield from child()`, which provides simpler and more complete generator delegation.",
+"explanation": "These two implementations produce the same values, but `yield from child()` is more concise. More importantly, yield from also supports delegation of generator operations such as send(), throw(), and close(), rather than merely forwarding yielded values.",
+"topic": "yield_from",
+"difficulty": "medium",
+"is_gotcha": false
+},
+{
+"question": "Does yield from simply mean 'yield all values and then continue'? Consider this example.\n\n`python\ndef child():\n    try:\n        yield 1\n        yield 2\n    finally:\n        print(\"Child cleanup\")\n\ndef parent():\n    yield from child()\n    yield 3\n\ng = parent()\nprint(next(g))\ng.close()\n`",
+"correct_answer": "No. yield from delegates generator control operations as well as yielded values. Closing the parent propagates the close operation to the delegated child, so the child's finally block executes.",
+"explanation": "When parent is suspended inside `yield from child()`, closing the parent also closes the delegated child generator. The child's cleanup code therefore runs and prints `Child cleanup`. This is one reason yield from is more powerful than a simple `for` loop with yield.",
+"topic": "yield_from",
+"difficulty": "medium",
+"is_gotcha": true
+}
+]
+
